@@ -18,8 +18,11 @@ git remote add origin https://github.com/YOUR-USERNAME/omaha-progress-tracker.gi
 git push -u origin main
 ```
 
-3. In GitHub, open the repository settings and enable Pages using **GitHub Actions** as the source.
-4. The included workflow at `.github/workflows/pages.yml` will publish the site after each push to `main`.
+3. In GitHub, open the repository settings and go to **Pages**.
+4. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
+5. Set **Branch** to `main` and the folder to `/root`, then save.
+
+GitHub will publish the site from `index.html` in the repository root.
 
 ## Preview
 
