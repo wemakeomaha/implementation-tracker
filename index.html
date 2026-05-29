@@ -244,10 +244,10 @@
         ["Economic Opportunity", "Average Wage", "$56,800", "Increase", "Improving", "Tracks whether economic growth is translating into stronger wages.", "2027", 64],
         ["Economic Opportunity", "Jobs Near Transit", "37.4%", "Increase", "Stable", "Connects employment growth to transportation choice.", "2027", 37],
         ["Economic Opportunity", "Youth Job Pathway Opportunities", "1,250 placements", "Increase", "Improving", "Counts internships, apprenticeships, and workforce programs connected to local youth.", "2027", 74],
-        ["Green Space & Resilience", "Tree Canopy Coverage", "28.5%", "Increase", "Stable", "Tracks shade, heat mitigation, air quality, and neighborhood comfort.", "2027", 57],
-        ["Green Space & Resilience", "Impervious Surface Coverage", "34.2%", "Decrease", "Stable", "Shows how much land is covered by hard surfaces that increase runoff and heat.", "2027", 46],
-        ["Green Space & Resilience", "Development in Flood-Prone Areas", "6.1%", "Decrease", "Needs Attention", "Monitors exposure to flooding and long-term climate risk.", "2027", 22],
-        ["Green Space & Resilience", "Greenfield and Agricultural Land Consumed", "1,240 acres", "Decrease", "Needs Attention", "Tracks loss of open land and farmland at the edge of the city.", "2027", 35],
+        ["Sustainability & Resiliency", "Tree Canopy Coverage", "28.5%", "Increase", "Stable", "Tracks shade, heat mitigation, air quality, and neighborhood comfort.", "2027", 57],
+        ["Sustainability & Resiliency", "Impervious Surface Coverage", "34.2%", "Decrease", "Stable", "Shows how much land is covered by hard surfaces that increase runoff and heat.", "2027", 46],
+        ["Sustainability & Resiliency", "Development in Flood-Prone Areas", "6.1%", "Decrease", "Needs Attention", "Monitors exposure to flooding and long-term climate risk.", "2027", 22],
+        ["Sustainability & Resiliency", "Greenfield and Agricultural Land Consumed", "1,240 acres", "Decrease", "Needs Attention", "Tracks loss of open land and farmland at the edge of the city.", "2027", 35],
         ["Equity & Neighborhood Investment", "Public Investment in Historically Underserved Areas", "$84.5M", "Increase", "Improving", "Shows where public dollars are being directed and who benefits.", "2027", 70],
         ["Equity & Neighborhood Investment", "Neighborhoods with Improved Access to Transit", "14", "Increase", "Improving", "Counts places where transit access has measurably improved.", "2027", 66],
         ["Equity & Neighborhood Investment", "Areas with High Displacement Risk", "9", "Decrease", "Needs Attention", "Identifies neighborhoods where rising costs could displace residents or businesses.", "2027", 27],
@@ -361,15 +361,14 @@
               <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
                 <div className="relative">
                   <div className="mb-6 h-1.5 w-24 rounded-full bg-civic-orange"></div>
-                  <p className="text-sm font-extrabold uppercase tracking-[0.22em] text-civic-ink">Public implementation dashboard</p>
+                  <p className="text-sm font-extrabold uppercase tracking-[0.22em] text-civic-ink">Plan implementation dashboard</p>
                   <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight text-civic-ink sm:text-6xl">Omaha Progress Tracker</h1>
-                  <p className="mt-4 text-xl font-bold text-civic-muted">Tracking how Omaha is implementing its comprehensive plan.</p>
                   <p className="mt-5 max-w-3xl text-lg leading-8 text-civic-muted">
-                    The Omaha Progress Tracker monitors how the comprehensive plan is being implemented and whether citywide and neighborhood conditions are changing over time.
+                    The Omaha Progress Tracker monitors how the comprehensive plan is being implemented and whether citywide conditions are changing over time.
                   </p>
                   <div className="mt-7 flex flex-wrap gap-3">
                     <a href="#implementation" className="rounded-xl bg-civic-ink px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-[#410402]">Track actions</a>
-                    <a href="#investments" className="rounded-xl border border-civic-line bg-white/90 px-5 py-3 text-sm font-extrabold text-civic-ink shadow-sm hover:bg-[#efe9dc]">Explore investments</a>
+                    <a href="#investments" className="rounded-xl border border-civic-line bg-white/90 px-5 py-3 text-sm font-extrabold text-civic-ink shadow-sm hover:bg-[#efe9dc]">Explore implementations</a>
                   </div>
                 </div>
                 <div className="brand-panel rounded-3xl border border-white bg-white/88 p-4 shadow-civic">
@@ -651,7 +650,7 @@
                 </SectionHeading>
                 <div className="brand-panel rounded-3xl border border-civic-line bg-civic-ink p-6 text-white shadow-civic md:p-8">
                   <p className="max-w-5xl text-lg leading-8">
-                    In 2027, Omaha completed 18 plan actions, advanced 11 additional actions, and began tracking 42 plan indicators. Progress was strongest in corridor planning, park access, and housing production. Areas needing continued attention include transit access, housing cost burden, infrastructure gaps, and investment in historically underserved neighborhoods.
+                    In 2027, Omaha completed 18 plan actions, advanced 11 additional actions, and began tracking 42 plan indicators. Progress was strongest in corridor planning, park access, and housing production. Areas requiring continued attention include transit access, housing affordability, infrastructure gaps, and investment in historically underserved neighborhoods.
                   </p>
                   <div className="mt-6 flex flex-wrap gap-3">
                     {["Download Annual Report", "View Completed Actions", "View Indicators Needing Attention", "View Public Investment Summary"].map(button => (
@@ -664,7 +663,7 @@
             <section id="methods" className="border-t border-civic-line bg-[#efe9dc]/68 px-4 py-16 sm:px-6 lg:px-8">
               <div className="mx-auto max-w-7xl">
                 <SectionHeading eyebrow="Data & Methods" title="Transparent methodology">
-                  Each indicator includes an "About this measure" explanation so residents can understand how progress is measured.
+                  Each indicator includes an "About this measure" explanation to help residents understand how progress is measured.
                 </SectionHeading>
                 <div className="mb-6 rounded-3xl border border-civic-line bg-white p-6 shadow-sm">
                   <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-civic-ink">About this measure</p>
