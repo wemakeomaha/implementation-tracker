@@ -322,18 +322,22 @@
       }
 
       function Header({ activeSection, setActiveSection }) {
-        const trackerTabs = navItems.filter(([, id]) => id !== "overview");
-        return (
-          <header className="sticky top-0 z-40 border-b border-civic-line bg-white">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-              <a href="https://wemake.omaha.gov/" className="focus-ring flex items-center rounded-lg" aria-label="Go to We Make Omaha website">
-                <img src="./assets/we-make-omaha-logo.jpg" alt="We Make Omaha" className="h-14 w-44 rounded-sm object-contain object-left sm:h-16 sm:w-56" />
-              </a>
-              <nav className="hidden flex-1 flex-nowrap items-center justify-end gap-1 overflow-x-auto xl:flex" aria-label="Tracker sections">
-                {trackerTabs.map(([label, id]) => (
-                  <button key={id} type="button" onClick={() => setActiveSection(id)} className={`whitespace-nowrap rounded-lg px-2.5 py-2 text-xs font-extrabold transition 2xl:px-3 2xl:text-sm ${activeSection === id ? "bg-[#620603] text-white" : "text-civic-muted hover:bg-[#f3f0e7] hover:text-[#111111]"}`}>
-                    {label}
-                  </button>
+          const trackerTabs = navItems.filter(([, id]) => id !== "overview");
+          return (
+            <header className="sticky top-0 z-40 border-b border-civic-line bg-white">
+              <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+                <button
+                  type="button"
+                  onClick={() => setActiveSection("overview")}
+                  className="focus-ring flex items-center rounded-lg"
+                  aria-label="Go to overview page"
+                >
+                  <img
+                    src="./assets/we-make-omaha-logo.jpg"
+                    alt="We Make Omaha"
+                    className="h-14 w-44 rounded-sm object-contain object-left sm:h-16 sm:w-56"
+                  />
+                </button>
                 ))}
               </nav>
               <label className="flex w-full max-w-xs xl:hidden">
