@@ -118,7 +118,7 @@
   <body class="text-civic-ink antialiased">
     <div id="root"></div>
     <script type="text/babel">
-      const { useMemo, useState } = React;
+      const { useEffect, useMemo, useState } = React;
 
       const navItems = [
         ["Overview", "overview"],
@@ -321,6 +321,25 @@
         );
       }
 
+      const sectionIds = navItems.map(([, id]) => id);
+      const cleanRouteParams = params => Object.fromEntries(
+        Object.entries(params || {}).filter(([, value]) => value && value !== "All")
+      );
+
+      function parseRouteHash() {
+        const rawHash = window.location.hash.replace(/^#/, "");
+        const [rawSection, rawQuery = ""] = rawHash.split("?");
+        const section = sectionIds.includes(rawSection) ? rawSection : "overview";
+        const params = Object.fromEntries(new URLSearchParams(rawQuery));
+        return { section, params: cleanRouteParams(params) };
+      }
+
+      function buildRouteHash(section, params = {}) {
+        const safeSection = sectionIds.includes(section) ? section : "overview";
+        const search = new URLSearchParams(cleanRouteParams(params)).toString();
+        return `#${safeSection}${search ? `?${search}` : ""}`;
+      }
+
       function Header({ activeSection, setActiveSection }) {
         const trackerTabs = navItems.filter(([, id]) => id !== "overview");
         return (
@@ -358,7 +377,7 @@
         );
       }
 
-      function Overview({ setActiveSection, setIndicatorGoal }) {
+      function Overview({ navigate }) {
         const stats = [
           ["42", "indicators tracked"],
           ["18", "actions completed this year"],
@@ -405,7 +424,7 @@
                     <div className="mb-4 h-1.5 w-16 rounded-full" style={{ backgroundColor: goalStyle(goal.name).color }}></div>
                     <h3 className="text-lg font-extrabold text-[#111111]">{goal.name}</h3>
                     <p className="mt-2 min-h-[72px] text-sm leading-6 text-civic-muted">{goal.desc}</p>
-                    <button type="button" onClick={() => { setIndicatorGoal(goal.name); setActiveSection("indicators"); }} className="mt-4 inline-flex rounded-lg border border-civic-line bg-white/80 px-3 py-2 text-sm font-extrabold text-civic-ink hover:bg-[#efe9dc]">View indicators</button>
+                    <button type="button" onClick={() => navigate("indicators", { goal: goal.name })} className="mt-4 inline-flex rounded-lg border border-civic-line bg-white/80 px-3 py-2 text-sm font-extrabold text-civic-ink hover:bg-[#efe9dc]">View indicators</button>
                   </article>
                 ))}
               </div>
@@ -414,11 +433,20 @@
         );
       }
 
-      function ImplementationTracker({ search, setSearch }) {
-        const [status, setStatus] = useState("All");
-        const [goal, setGoal] = useState("All");
-        const [timeframe, setTimeframe] = useState("All");
-        const [department, setDepartment] = useState("All");
+      function ImplementationTracker({ search, setSearch, routeParams, onParamChange }) {
+        const [status, setStatus] = useState(routeParams.status || "All");
+        const [goal, setGoal] = useState(routeParams.goal || "All");
+        const [timeframe, setTimeframe] = useState(routeParams.timeframe || "All");
+        const [department, setDepartment] = useState(routeParams.department || "All");
+        useEffect(() => setSearch(routeParams.q || ""), [routeParams.q]);
+        useEffect(() => setStatus(routeParams.status || "All"), [routeParams.status]);
+        useEffect(() => setGoal(routeParams.goal || "All"), [routeParams.goal]);
+        useEffect(() => setTimeframe(routeParams.timeframe || "All"), [routeParams.timeframe]);
+        useEffect(() => setDepartment(routeParams.department || "All"), [routeParams.department]);
+        const updateFilter = (key, value, setter) => {
+          setter(value);
+          onParamChange(key, value);
+        };
         const filtered = useMemo(() => actions.filter(action => {
           const text = `${action.title} ${action.goal} ${action.department} ${action.indicators.join(" ")}`.toLowerCase();
           return (!search || text.includes(search.toLowerCase())) &&
@@ -437,12 +465,12 @@
                 <div className="grid gap-3 md:grid-cols-5">
                   <label className="md:col-span-1">
                     <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-civic-muted">Search</span>
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search actions or indicators" className="focus-ring w-full rounded-xl border border-civic-line bg-white/95 px-3 py-2.5 text-sm shadow-sm" />
+                    <input value={search} onChange={e => { setSearch(e.target.value); onParamChange("q", e.target.value); }} placeholder="Search actions or indicators" className="focus-ring w-full rounded-xl border border-civic-line bg-white/95 px-3 py-2.5 text-sm shadow-sm" />
                   </label>
-                  <Select label="Status" value={status} setValue={setStatus} options={["Not Started", "In Progress", "Completed", "Delayed", "Ongoing"]} />
-                  <Select label="Goal Area" value={goal} setValue={setGoal} options={goals.map(g => g.name)} />
-                  <Select label="Timeframe" value={timeframe} setValue={setTimeframe} options={["Short-term", "Medium-term", "Long-term"]} />
-                  <Select label="Department" value={department} setValue={setDepartment} options={[...new Set(actions.map(a => a.department))]} />
+                  <Select label="Status" value={status} setValue={value => updateFilter("status", value, setStatus)} options={["Not Started", "In Progress", "Completed", "Delayed", "Ongoing"]} />
+                  <Select label="Goal Area" value={goal} setValue={value => updateFilter("goal", value, setGoal)} options={goals.map(g => g.name)} />
+                  <Select label="Timeframe" value={timeframe} setValue={value => updateFilter("timeframe", value, setTimeframe)} options={["Short-term", "Medium-term", "Long-term"]} />
+                  <Select label="Department" value={department} setValue={value => updateFilter("department", value, setDepartment)} options={[...new Set(actions.map(a => a.department))]} />
                 </div>
                 <div className="mt-5 overflow-hidden rounded-2xl border border-civic-line">
                   <div className="hidden grid-cols-[1.5fr_0.75fr_0.85fr_0.65fr_1fr_1.1fr_0.7fr] gap-4 bg-[#f3f0e7] px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-civic-muted lg:grid">
@@ -466,12 +494,25 @@
         );
       }
 
-      function IndicatorsDashboard({ search, setSearch, initialGoal = "All" }) {
-        const [goal, setGoal] = useState(initialGoal);
-        const [status, setStatus] = useState("All");
-        const [year, setYear] = useState("All");
-        const [geo, setGeo] = useState("All");
-        const [tab, setTab] = useState(initialGoal);
+      function IndicatorsDashboard({ search, setSearch, routeParams, onParamChange }) {
+        const [goal, setGoal] = useState(routeParams.goal || "All");
+        const [status, setStatus] = useState(routeParams.status || "All");
+        const [year, setYear] = useState(routeParams.year || "All");
+        const [geo, setGeo] = useState(routeParams.geo || "All");
+        const [tab, setTab] = useState(routeParams.goal || "All");
+        useEffect(() => setSearch(routeParams.q || ""), [routeParams.q]);
+        useEffect(() => {
+          const nextGoal = routeParams.goal || "All";
+          setGoal(nextGoal);
+          setTab(nextGoal);
+        }, [routeParams.goal]);
+        useEffect(() => setStatus(routeParams.status || "All"), [routeParams.status]);
+        useEffect(() => setYear(routeParams.year || "All"), [routeParams.year]);
+        useEffect(() => setGeo(routeParams.geo || "All"), [routeParams.geo]);
+        const updateFilter = (key, value, setter) => {
+          setter(value);
+          onParamChange(key, value);
+        };
         const selectedGoal = tab !== "All" ? tab : goal;
         const filtered = useMemo(() => indicators.filter(indicator => {
           const text = `${indicator.name} ${indicator.goal} ${indicator.why}`.toLowerCase();
@@ -488,18 +529,18 @@
               </SectionHeading>
               <div className="mb-5 flex gap-2 overflow-x-auto pb-2">
                 {["All", ...goals.map(g => g.name)].map(name => (
-                  <button key={name} onClick={() => setTab(name)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold ring-1 ${tab === name ? "bg-[#620603] text-white ring-[#620603]" : "bg-white/90 text-civic-muted ring-civic-line hover:text-[#111111]"}`} style={tab === name && name !== "All" ? { boxShadow: `inset 0 -4px 0 ${goalStyle(name).color}` } : {}}>{name}</button>
+                  <button key={name} onClick={() => { setTab(name); setGoal(name); onParamChange("goal", name); }} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-extrabold ring-1 ${tab === name ? "bg-[#620603] text-white ring-[#620603]" : "bg-white/90 text-civic-muted ring-civic-line hover:text-[#111111]"}`} style={tab === name && name !== "All" ? { boxShadow: `inset 0 -4px 0 ${goalStyle(name).color}` } : {}}>{name}</button>
                 ))}
               </div>
               <div className="mb-6 grid gap-3 rounded-3xl border border-civic-line bg-white p-4 shadow-sm md:grid-cols-5">
                 <label>
                   <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-civic-muted">Search</span>
-                  <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search indicators" className="focus-ring w-full rounded-xl border border-civic-line bg-white/95 px-3 py-2.5 text-sm shadow-sm" />
+                  <input value={search} onChange={e => { setSearch(e.target.value); onParamChange("q", e.target.value); }} placeholder="Search indicators" className="focus-ring w-full rounded-xl border border-civic-line bg-white/95 px-3 py-2.5 text-sm shadow-sm" />
                 </label>
-                <Select label="Goal Area" value={goal} setValue={setGoal} options={goals.map(g => g.name)} />
-                <Select label="Geography" value={geo} setValue={setGeo} options={["Citywide", "Council District", "Neighborhood Area", "Priority Corridor"]} />
-                <Select label="Year" value={year} setValue={setYear} options={["2027", "2026", "2025"]} />
-                <Select label="Indicator Status" value={status} setValue={setStatus} options={["Improving", "Stable", "Needs Attention"]} />
+                <Select label="Goal Area" value={goal} setValue={value => { setGoal(value); setTab(value); onParamChange("goal", value); }} options={goals.map(g => g.name)} />
+                <Select label="Geography" value={geo} setValue={value => updateFilter("geo", value, setGeo)} options={["Citywide", "Council District", "Neighborhood Area", "Priority Corridor"]} />
+                <Select label="Year" value={year} setValue={value => updateFilter("year", value, setYear)} options={["2027", "2026", "2025"]} />
+                <Select label="Indicator Status" value={status} setValue={value => updateFilter("status", value, setStatus)} options={["Improving", "Stable", "Needs Attention"]} />
               </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {filtered.map(indicator => (
@@ -531,8 +572,9 @@
         );
       }
 
-      function ExploreAreas() {
-        const [geoType, setGeoType] = useState("Neighborhood Area");
+      function ExploreAreas({ routeParams, onParamChange }) {
+        const [geoType, setGeoType] = useState(routeParams.type || "Neighborhood Area");
+        useEffect(() => setGeoType(routeParams.type || "Neighborhood Area"), [routeParams.type]);
         return (
           <section id="areas" className="border-y border-civic-line bg-[#efe9dc]/68 px-4 py-16 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl">
@@ -541,7 +583,7 @@
               </SectionHeading>
               <div className="mb-6 flex flex-wrap justify-center gap-2">
                 {["Citywide", "City Council District", "Neighborhood Area", "Priority Corridor", "Historically Underserved Area"].map(type => (
-                  <button key={type} onClick={() => setGeoType(type)} className={`rounded-full px-4 py-2 text-sm font-extrabold ring-1 ${geoType === type ? "bg-[#620603] text-white ring-[#620603]" : "bg-white/90 text-civic-muted ring-civic-line"}`}>{type}</button>
+                  <button key={type} onClick={() => { setGeoType(type); onParamChange("type", type); }} className={`rounded-full px-4 py-2 text-sm font-extrabold ring-1 ${geoType === type ? "bg-[#620603] text-white ring-[#620603]" : "bg-white/90 text-civic-muted ring-civic-line"}`}>{type}</button>
                 ))}
               </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -565,10 +607,18 @@
         );
       }
 
-      function InvestmentMap() {
+      function InvestmentMap({ routeParams, onParamChange }) {
         const layers = ["Capital Improvement Projects", "Housing Investments", "Transportation Projects", "Parks Projects", "Economic Development Projects", "Planning Initiatives", "Priority Corridors", "Historically Underserved Areas"];
-        const [activeLayers, setActiveLayers] = useState(layers.slice(0, 4));
-        const toggle = layer => setActiveLayers(prev => prev.includes(layer) ? prev.filter(item => item !== layer) : [...prev, layer]);
+        const routeLayers = routeParams.layers ? routeParams.layers.split("|").filter(layer => layers.includes(layer)) : layers.slice(0, 4);
+        const [activeLayers, setActiveLayers] = useState(routeLayers);
+        useEffect(() => {
+          setActiveLayers(routeParams.layers ? routeParams.layers.split("|").filter(layer => layers.includes(layer)) : layers.slice(0, 4));
+        }, [routeParams.layers]);
+        const toggle = layer => setActiveLayers(prev => {
+          const next = prev.includes(layer) ? prev.filter(item => item !== layer) : [...prev, layer];
+          onParamChange("layers", next.join("|"));
+          return next;
+        });
         return (
           <section id="investments" className="px-4 py-16 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl">
@@ -699,28 +749,40 @@
       }
 
       function App() {
-        const [globalSearch, setGlobalSearch] = useState("");
-        const [activeSection, setActiveSection] = useState("overview");
-        const [indicatorGoal, setIndicatorGoal] = useState("All");
-        const showSection = section => {
-          if (section !== "indicators") {
-            setIndicatorGoal("All");
+        const [route, setRoute] = useState(() => parseRouteHash());
+        const [globalSearch, setGlobalSearch] = useState(route.params.q || "");
+        useEffect(() => {
+          const handleHashChange = () => setRoute(parseRouteHash());
+          window.addEventListener("hashchange", handleHashChange);
+          handleHashChange();
+          return () => window.removeEventListener("hashchange", handleHashChange);
+        }, []);
+        const commitRoute = (section, params = {}) => {
+          const hash = buildRouteHash(section, params);
+          if (window.location.hash !== hash) {
+            window.location.hash = hash;
+          } else {
+            setRoute({ section, params: cleanRouteParams(params) });
           }
-          setActiveSection(section);
         };
+        const navigate = (section, params = {}) => commitRoute(section, params);
+        const updateRouteParam = (key, value) => {
+          commitRoute(route.section, { ...route.params, [key]: value });
+        };
+        const activeSection = route.section;
         const sectionComponents = {
-          overview: <Overview setActiveSection={setActiveSection} setIndicatorGoal={setIndicatorGoal} />,
-          implementation: <ImplementationTracker search={globalSearch} setSearch={setGlobalSearch} />,
-          indicators: <IndicatorsDashboard key={indicatorGoal} search={globalSearch} setSearch={setGlobalSearch} initialGoal={indicatorGoal} />,
-          areas: <ExploreAreas />,
-          investments: <InvestmentMap />,
+          overview: <Overview navigate={navigate} />,
+          implementation: <ImplementationTracker search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} />,
+          indicators: <IndicatorsDashboard search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} />,
+          areas: <ExploreAreas routeParams={route.params} onParamChange={updateRouteParam} />,
+          investments: <InvestmentMap routeParams={route.params} onParamChange={updateRouteParam} />,
           priorities: <CommunityPriorities />,
           reports: <AnnualReports />,
           methods: <DataMethods />
         };
         return (
           <div className="flex min-h-screen flex-col">
-            <Header activeSection={activeSection} setActiveSection={showSection} />
+            <Header activeSection={activeSection} setActiveSection={navigate} />
             <main className="flex-1">
               {sectionComponents[activeSection]}
             </main>
