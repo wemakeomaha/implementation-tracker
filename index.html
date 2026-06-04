@@ -344,7 +344,7 @@
         const trackerTabs = navItems.filter(([, id]) => id !== "overview");
         return (
           <header className="sticky top-0 z-40 border-b border-civic-line bg-white">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
               <button
                 type="button"
                 onClick={() => setActiveSection("overview")}
@@ -357,14 +357,14 @@
                   className="h-14 w-44 rounded-sm object-contain object-left sm:h-16 sm:w-56"
                 />
               </button>
-              <nav className="hidden flex-1 flex-nowrap items-center justify-end gap-1 overflow-x-auto xl:flex" aria-label="Tracker sections">
+              <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-end gap-1 lg:flex" aria-label="Tracker sections">
                 {trackerTabs.map(([label, id]) => (
-                  <button key={id} type="button" onClick={() => setActiveSection(id)} className={`whitespace-nowrap rounded-lg px-2.5 py-2 text-xs font-extrabold transition 2xl:px-3 2xl:text-sm ${activeSection === id ? "bg-[#620603] text-white" : "text-civic-muted hover:bg-[#f3f0e7] hover:text-[#111111]"}`}>
+                  <button key={id} type="button" onClick={() => setActiveSection(id)} className={`whitespace-nowrap rounded-lg px-2 py-1.5 text-[0.72rem] font-extrabold leading-tight transition xl:px-2.5 xl:text-xs 2xl:px-3 2xl:text-sm ${activeSection === id ? "bg-[#620603] text-white" : "text-civic-muted hover:bg-[#f3f0e7] hover:text-[#111111]"}`}>
                     {label}
                   </button>
                 ))}
               </nav>
-              <label className="flex w-full max-w-xs xl:hidden">
+              <label className="flex w-full max-w-xs lg:hidden">
                 <select value={activeSection === "overview" ? "" : activeSection} onChange={event => event.target.value && setActiveSection(event.target.value)} className="focus-ring w-full rounded-xl border border-civic-line bg-white px-3 py-2.5 text-sm font-extrabold text-civic-ink shadow-sm">
                   <option value="">Sections</option>
                   {trackerTabs.map(([label, id]) => (
