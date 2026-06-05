@@ -139,7 +139,7 @@
         { name: "Sustainability & Resiliency", desc: "Protects natural systems like native habitat, green spaces, waterways, and air quality, while expanding parks, trails, and climate resilience." },
         { name: "Arts & Culture", desc: "Explores the connections between our growth and development with the arts, the many cultures represented by Omahans, and our rich history." },
         { name: "Fiscal Sustainability", desc: "Tracks whether growth patterns support efficient public services and infrastructure." },
-        { name: "Public Health", desc: "Tracks whether growth patterns support efficient public services and infrastructure." }
+        { name: "Public Health", desc: "Tracks access to healthy environments, daily needs, safe streets, and community wellbeing." }
       ];
 
       const goalStyles = {
@@ -150,7 +150,7 @@
         "Sustainability & Resiliency": { color: "#39C1A1", tint: "rgba(57, 193, 161, 0.13)" },
         "Arts & Culture": { color: "#9B2D92", tint: "rgba(155, 45, 146, 0.10)" },
         "Fiscal Sustainability": { color: "#F1BD51", tint: "rgba(241, 189, 81, 0.18)" },
-        "Public Health": { color: "#7578E6, tint: "rgba(118, 123, 227, 0.18)" }
+        "Public Health": { color: "#7578E6", tint: "rgba(117, 120, 230, 0.13)" }
       };
 
       const goalStyle = name => goalStyles[name] || { color: "#620603", tint: "rgba(209, 203, 187, 0.28)" };
@@ -240,6 +240,9 @@
         ["Mobility", "Households within a 15-Minute Walk of Retail", "46.5%", "Increase", "Stable", "Tracks access to daily needs in complete neighborhoods.", "2027", 47],
         ["Mobility", "Non-Auto Trip Share", "12.7%", "Increase", "Needs Attention", "Shows whether walking, biking, transit, and other options are becoming more useful.", "2027", 29],
         ["Mobility", "Vehicle Miles Traveled per Service Population", "21.3 miles", "Decrease", "Needs Attention", "Measures travel demand and transportation efficiency across residents and jobs.", "2027", 34],
+        ["Public Health", "Households within a 15-Minute Walk of Healthy Food Retail", "46.8%", "Increase", "Stable", "Tracks practical access to daily food options that support household health.", "2027", 47],
+        ["Public Health", "Air Quality Alert Days", "18 days", "Decrease", "Needs Attention", "Monitors environmental conditions that affect respiratory health and outdoor activity.", "2027", 32],
+        ["Public Health", "Safe Routes to Schools Coverage", "41.5%", "Increase", "Improving", "Shows whether children and families have safer walking and biking routes near schools.", "2027", 58],
         ["Economic Development", "Jobs Accessible within 20 Minutes", "42.6%", "Increase", "Stable", "Shows how many jobs are reasonably reachable from where people live.", "2027", 43],
         ["Economic Development", "Average Wage", "$56,800", "Increase", "Improving", "Tracks whether economic growth is translating into stronger wages.", "2027", 64],
         ["Economic Development", "Jobs Near Transit", "37.4%", "Increase", "Stable", "Connects employment growth to transportation choice.", "2027", 37],
@@ -386,7 +389,7 @@
           ["11", "actions in progress"],
           ["6", "indicators improving"],
           ["3", "indicators needing attention"],
-          ["7", "plan goal areas"]
+          ["8", "plan goal areas"]
         ];
         return (
           <section id="overview" className="px-4 pb-16 pt-10 sm:px-6 lg:px-8">
