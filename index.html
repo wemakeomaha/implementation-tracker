@@ -131,7 +131,7 @@
         ["Indicators Dashboard", "indicators"],
         ["Implementation Map", "implementation-map"],
         ["Annual Reports", "reports"],
-        ["Data & Methods", "methods"]
+        ["Contact Us", "contact"]
       ];
 
       const goals = [
@@ -241,14 +241,13 @@
         return "Citywide, council district, and planning district";
       };
 
-      const buildMethodology = ({ goal, name, value, direction, status, why, year }) => ({
+      const buildMethodology = ({ goal, name, value, status, why, year }) => ({
         what: `${name} reports the current tracked condition for ${goal.toLowerCase()} using the latest available local data.`,
         why,
         dataSource: sourceForIndicator(goal, name),
         updateFrequency: "Annual, as source data is refreshed",
         geography: geographyForIndicator(name),
         baselineYear: "2025",
-        desiredChange: direction,
         limitations: "This prototype uses sample data. A live dashboard would document source vintages, quality checks, margin of error, and any methods used to normalize values across geographies.",
         currentValue: value,
         status,
@@ -304,9 +303,9 @@
       ];
 
       const statusStyles = {
-        "Improving": "bg-[#f3f0e7] text-[#1f1f1f] ring-[#D1CBBB]",
-        "Stable": "bg-[#f3f0e7] text-[#1f1f1f] ring-[#D1CBBB]",
-        "Needs Attention": "bg-[#f3f0e7] text-[#1f1f1f] ring-[#D1CBBB]",
+        "Improving": "bg-[#e8f7f3] text-[#006057] ring-[#39C1A1]/35",
+        "Stable": "bg-[#eef1f3] text-[#58595B] ring-[#7C9BA9]/45",
+        "Needs Attention": "bg-[#f6e8e7] text-[#620603] ring-[#620603]/25",
         "Completed": "bg-[#e8f7f3] text-[#006057] ring-[#39C1A1]/35",
         "In Progress": "bg-[#eaf0ff] text-[#0441BE] ring-[#0441BE]/25",
         "Delayed": "bg-[#f6e8e7] text-[#620603] ring-[#620603]/25",
@@ -351,7 +350,6 @@
           ["Data source", indicator.methodology.dataSource],
           ["Update frequency", indicator.methodology.updateFrequency],
           ["Baseline year", indicator.methodology.baselineYear],
-          ["Direction of desired change", indicator.methodology.desiredChange],
           ["Limitations", indicator.methodology.limitations]
         ];
         return (
@@ -394,7 +392,8 @@
       const sectionIds = navItems.map(([, id]) => id);
       const routeAliases = {
         overview: "home",
-        investments: "implementation-map"
+        investments: "implementation-map",
+        methods: "contact"
       };
       const normalizeSection = section => {
         const normalized = routeAliases[section] || section;
@@ -636,12 +635,11 @@
                       </div>
                       <Badge>{indicator.status}</Badge>
                     </div>
-                    <div className="mt-4 flex items-end justify-between">
+                    <div className="mt-4">
                       <p className="text-3xl font-black text-[#111111]">{indicator.value}</p>
-                      <p className="rounded-lg bg-[#f3f0e7] px-2.5 py-1 text-xs font-extrabold text-civic-muted">{indicator.direction}</p>
                     </div>
                     <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[#efede7]">
-                      <div className="h-full rounded-full" style={{ width: `${indicator.progress}%`, backgroundColor: indicator.status === "Needs Attention" ? "#620603" : indicator.status === "Stable" ? "#7C9BA9" : goalStyle(indicator.goal).color }}></div>
+                      <div className="h-full rounded-full" style={{ width: `${indicator.progress}%`, backgroundColor: goalStyle(indicator.goal).color }}></div>
                     </div>
                     <p className="mt-4 text-sm leading-6 text-civic-muted">{indicator.why}</p>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-civic-muted">
@@ -754,64 +752,23 @@
         );
       }
 
-      function DataMethods({ search, setSearch, routeParams, onParamChange, onOpenIndicator }) {
-        const [goal, setGoal] = useState(routeParams.goal || "All");
-        const [source, setSource] = useState(routeParams.source || "All");
-        useEffect(() => setSearch(routeParams.q || ""), [routeParams.q]);
-        useEffect(() => setGoal(routeParams.goal || "All"), [routeParams.goal]);
-        useEffect(() => setSource(routeParams.source || "All"), [routeParams.source]);
-        const dataSources = [...new Set(indicators.map(indicator => indicator.methodology.dataSource))].sort();
-        const updateFilter = (key, value, setter) => {
-          setter(value);
-          onParamChange(key, value);
-        };
-        const libraryIndicators = useMemo(() => indicators.filter(indicator => {
-          const text = `${indicator.name} ${indicator.goal} ${indicator.why} ${indicator.methodology.dataSource}`.toLowerCase();
-          return (!search || text.includes(search.toLowerCase())) &&
-            (goal === "All" || indicator.goal === goal) &&
-            (source === "All" || indicator.methodology.dataSource === source);
-        }), [search, goal, source]);
+      function ContactUs() {
         return (
-          <section id="methods" className="px-4 py-16 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-7xl">
-              <SectionHeading eyebrow="Data & Methods" title="Indicator library">
-                Search every measure, review source information, and open the detailed methodology for any indicator.
+          <section id="contact" className="px-4 py-16 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-4xl">
+              <SectionHeading eyebrow="Contact Us" title="Contact us">
+                Have questions about the Omaha Progress Tracker or comprehensive plan implementation? Share your question with the planning team.
               </SectionHeading>
-              <div className="mb-6 grid gap-3 rounded-3xl border border-civic-line bg-white p-4 shadow-sm md:grid-cols-3">
-                <label>
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-civic-muted">Search indicators</span>
-                  <input value={search} onChange={e => { setSearch(e.target.value); onParamChange("q", e.target.value); }} placeholder="Name, goal, source" className="focus-ring w-full rounded-xl border border-civic-line bg-white/95 px-3 py-2.5 text-sm shadow-sm" />
-                </label>
-                <Select label="Goal Area" value={goal} setValue={value => updateFilter("goal", value, setGoal)} options={goals.map(g => g.name)} />
-                <Select label="Data Source" value={source} setValue={value => updateFilter("source", value, setSource)} options={dataSources} />
-              </div>
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <p className="text-sm font-semibold text-civic-muted">{libraryIndicators.length} indicators shown</p>
-                <p className="hidden text-sm text-civic-muted sm:block">Detailed methods open in a reusable side drawer.</p>
-              </div>
-              <div className="grid gap-3">
-                {libraryIndicators.map(indicator => (
-                  <article key={indicator.name} className="rounded-2xl border border-civic-line bg-white p-4 shadow-sm">
-                    <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr_0.9fr_auto] lg:items-center">
-                      <div>
-                        <p className="text-xs font-extrabold uppercase tracking-wide" style={{ color: goalStyle(indicator.goal).color }}>{indicator.goal}</p>
-                        <h3 className="mt-1 text-base font-extrabold text-[#111111]">{indicator.name}</h3>
-                        <p className="mt-1 text-sm leading-6 text-civic-muted">{indicator.why}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wide text-civic-muted">Data source</p>
-                        <p className="mt-1 text-sm font-semibold text-[#111111]">{indicator.methodology.dataSource}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wide text-civic-muted">Update frequency</p>
-                        <p className="mt-1 text-sm font-semibold text-[#111111]">{indicator.methodology.updateFrequency}</p>
-                      </div>
-                      <button type="button" onClick={() => onOpenIndicator(indicator)} className="focus-ring rounded-full border border-[#620603]/25 bg-white px-4 py-2 text-sm font-extrabold text-[#620603] hover:bg-[#f6e8e7] lg:justify-self-end">
-                        View details
-                      </button>
-                    </div>
-                  </article>
-                ))}
+              <div className="rounded-3xl border border-civic-line bg-white p-6 text-center shadow-civic sm:p-8">
+                <p className="mx-auto max-w-2xl text-base leading-7 text-civic-muted">
+                  Use this form to send questions about the tracker, plan implementation progress, indicators, annual updates, or related public information.
+                </p>
+                <a href="https://forms.gle/REPLACE_WITH_REAL_FORM_LINK" target="_blank" rel="noopener noreferrer" className="focus-ring nowrap-pill mt-6 justify-center rounded-full bg-[#620603] px-6 py-3 text-sm font-extrabold text-white hover:bg-[#4c0502]">
+                  Ask a question
+                </a>
+                <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-civic-muted">
+                  This form is for questions about the tracker, plan implementation and related public updates.
+                </p>
               </div>
             </div>
           </section>
@@ -864,7 +821,7 @@
           indicators: <IndicatorsDashboard search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} onOpenIndicator={setSelectedIndicator} />,
           "implementation-map": <InvestmentMap routeParams={route.params} onParamChange={updateRouteParam} />,
           reports: <AnnualReports />,
-          methods: <DataMethods search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} onOpenIndicator={setSelectedIndicator} />
+          contact: <ContactUs />
         };
         return (
           <div className="flex min-h-screen flex-col">
