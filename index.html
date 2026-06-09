@@ -221,6 +221,37 @@
         }
       ];
 
+      const sourceForIndicator = (goal, name) => {
+        if (name.includes("Transit") || name.includes("Trip") || name.includes("Vehicle") || name.includes("Routes")) return "City transportation and transit datasets";
+        if (name.includes("Housing") || name.includes("Density") || name.includes("Unit") || name.includes("Cost Burden")) return "Housing, parcel, and census datasets";
+        if (name.includes("Investment") || name.includes("Projects") || name.includes("Infrastructure")) return "Capital improvement and budget records";
+        if (name.includes("Tree") || name.includes("Impervious") || name.includes("Flood") || name.includes("Air Quality")) return "Environmental and resilience datasets";
+        if (name.includes("Jobs") || name.includes("Wage") || name.includes("Business") || name.includes("Pathway")) return "Economic development and workforce datasets";
+        if (name.includes("Development") || name.includes("Land") || name.includes("Greenfield") || name.includes("Redevelopment")) return "Planning, parcel, and land development records";
+        return `${goal} program data`;
+      };
+
+      const geographyForIndicator = name => {
+        if (name.includes("Corridor") || name.includes("Transit")) return "Citywide, corridor, and neighborhood area";
+        if (name.includes("Neighborhood") || name.includes("Priority") || name.includes("Underserved")) return "Citywide, council district, and priority area";
+        if (name.includes("Parks") || name.includes("Retail") || name.includes("Healthy Food") || name.includes("Schools")) return "Citywide and neighborhood area";
+        return "Citywide, council district, and planning district";
+      };
+
+      const buildMethodology = ({ goal, name, value, direction, status, why, year }) => ({
+        what: `${name} reports the current tracked condition for ${goal.toLowerCase()} using the latest available local data.`,
+        why,
+        dataSource: sourceForIndicator(goal, name),
+        updateFrequency: "Annual, as source data is refreshed",
+        geography: geographyForIndicator(name),
+        baselineYear: "2025",
+        desiredChange: direction,
+        limitations: "This prototype uses sample data. A live dashboard would document source vintages, quality checks, margin of error, and any methods used to normalize values across geographies.",
+        currentValue: value,
+        status,
+        lastUpdated: year
+      });
+
       const indicators = [
         ["Land Use & Built Form", "Infill Development", "55.7%", "Increase", "Improving", "Shows whether growth is using existing infrastructure and strengthening established areas.", "2027", 56],
         ["Land Use & Built Form", "Greenfield Land Consumed", "1,240 acres", "Decrease", "Needs Attention", "Tracks pressure on undeveloped land and long-term infrastructure obligations.", "2027", 38],
@@ -254,9 +285,10 @@
         ["Economic Development", "Public Investment in Historically Underserved Areas", "$84.5M", "Increase", "Improving", "Shows where public dollars are being directed and who benefits.", "2027", 70],
         ["Economic Development", "Neighborhoods with Improved Access to Transit", "14", "Increase", "Improving", "Counts places where transit access has measurably improved.", "2027", 66],
         ["Economic Development", "Areas with High Displacement Risk", "9", "Decrease", "Needs Attention", "Identifies neighborhoods where rising costs could displace residents or businesses.", "2027", 27]
-      ].map(([goal, name, value, direction, status, why, year, progress]) => ({
-        goal, name, value, direction, status, why, year, progress
-      }));
+      ].map(([goal, name, value, direction, status, why, year, progress]) => {
+        const indicator = { goal, name, value, direction, status, why, year, progress };
+        return { ...indicator, methodology: buildMethodology(indicator) };
+      });
 
       const areaProfiles = [
         { name: "South Omaha", priorities: "Housing affordability, safer streets, small business support, youth opportunities, transit access.", projects: "24th Street corridor reinvestment, sidewalk gap repairs, affordable housing preservation.", indicators: "Walkability to transit, housing cost burden, public investment, small business activity, park access.", status: "Needs continued attention" },
@@ -323,6 +355,55 @@
               {options.map(option => <option key={option}>{option}</option>)}
             </select>
           </label>
+        );
+      }
+
+      function IndicatorDetailsDrawer({ indicator, onClose }) {
+        if (!indicator) return null;
+        const details = [
+          ["What it measures", indicator.methodology.what],
+          ["Why it matters", indicator.methodology.why],
+          ["Data source", indicator.methodology.dataSource],
+          ["Update frequency", indicator.methodology.updateFrequency],
+          ["Geography", indicator.methodology.geography],
+          ["Baseline year", indicator.methodology.baselineYear],
+          ["Direction of desired change", indicator.methodology.desiredChange],
+          ["Limitations", indicator.methodology.limitations]
+        ];
+        return (
+          <div className="fixed inset-0 z-50 flex justify-end bg-black/35 px-0 sm:px-4" role="dialog" aria-modal="true" aria-labelledby="indicator-drawer-title" onClick={onClose}>
+            <aside className="h-full w-full overflow-y-auto border-l border-civic-line bg-white p-5 shadow-2xl sm:max-w-xl sm:p-7" onClick={event => event.stopPropagation()}>
+              <div className="mb-5 flex items-start justify-between gap-4 border-b border-civic-line pb-5">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#620603]">About this measure</p>
+                  <h2 id="indicator-drawer-title" className="mt-2 text-2xl font-black leading-tight text-[#111111]">{indicator.name}</h2>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full px-3 py-1 text-xs font-extrabold text-white" style={{ backgroundColor: goalStyle(indicator.goal).color }}>{indicator.goal}</span>
+                    <Badge>{indicator.status}</Badge>
+                  </div>
+                </div>
+                <button type="button" onClick={onClose} className="focus-ring rounded-lg border border-civic-line bg-white px-3 py-2 text-sm font-extrabold text-[#111111] hover:bg-[#f3f0e7]" aria-label="Close indicator details">Close</button>
+              </div>
+              <div className="grid gap-3 rounded-2xl border border-civic-line bg-[#fbfaf7] p-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-civic-muted">Current value</p>
+                  <p className="mt-1 text-2xl font-black text-[#111111]">{indicator.value}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-civic-muted">Last updated</p>
+                  <p className="mt-1 text-2xl font-black text-[#111111]">{indicator.year}</p>
+                </div>
+              </div>
+              <div className="mt-5 space-y-4">
+                {details.map(([label, text]) => (
+                  <section key={label} className="border-b border-civic-line pb-4 last:border-b-0">
+                    <h3 className="text-sm font-extrabold text-[#111111]">{label}</h3>
+                    <p className="mt-1 text-sm leading-6 text-civic-muted">{text}</p>
+                  </section>
+                ))}
+              </div>
+            </aside>
+          </div>
         );
       }
 
@@ -499,7 +580,7 @@
         );
       }
 
-      function IndicatorsDashboard({ search, setSearch, routeParams, onParamChange }) {
+      function IndicatorsDashboard({ search, setSearch, routeParams, onParamChange, onOpenIndicator }) {
         const [goal, setGoal] = useState(routeParams.goal || "All");
         const [status, setStatus] = useState(routeParams.status || "All");
         const [year, setYear] = useState(routeParams.year || "All");
@@ -565,9 +646,14 @@
                       <div className="h-full rounded-full" style={{ width: `${indicator.progress}%`, backgroundColor: indicator.status === "Needs Attention" ? "#620603" : indicator.status === "Stable" ? "#7C9BA9" : goalStyle(indicator.goal).color }}></div>
                     </div>
                     <p className="mt-4 text-sm leading-6 text-civic-muted">{indicator.why}</p>
-                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-civic-muted">
-                      <span className="rounded-full bg-[#f3f0e7] px-2.5 py-1">Updated {indicator.year}</span>
-                      <span className="rounded-full bg-[#f3f0e7] px-2.5 py-1">Related plan goal</span>
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-civic-muted">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-[#f3f0e7] px-2.5 py-1">Updated {indicator.year}</span>
+                        <span className="rounded-full bg-[#f3f0e7] px-2.5 py-1">Related plan goal</span>
+                      </div>
+                      <button type="button" onClick={() => onOpenIndicator(indicator)} className="focus-ring rounded-full border border-[#620603]/25 bg-white px-3 py-1.5 text-xs font-extrabold text-[#620603] hover:bg-[#f6e8e7]">
+                        About this measure
+                      </button>
                     </div>
                   </article>
                 ))}
@@ -694,16 +780,6 @@
         );
       }
 
-      const methodCards = [
-        ["Indicator Definition", "Plain-language definition of what the measure captures and why it was selected."],
-        ["Data Source", "Primary source, stewarding agency, and any transformations used in the dashboard."],
-        ["Update Frequency", "How often the measure is refreshed, such as annually, quarterly, or when new data is released."],
-        ["Geography", "Whether the measure is available citywide, by council district, corridor, or neighborhood area."],
-        ["Baseline Year", "The first year used to compare future progress against plan adoption conditions."],
-        ["Direction of Desired Change", "Whether the plan expects the value to increase, decrease, or be monitored."],
-        ["Limitations", "Known caveats, missing data, confidence issues, or interpretation notes for public users."]
-      ];
-
       function AnnualReports() {
         return (
           <section id="reports" className="px-4 py-16 sm:px-6 lg:px-8">
@@ -726,25 +802,67 @@
         );
       }
 
-      function DataMethods() {
+      function DataMethods({ search, setSearch, routeParams, onParamChange, onOpenIndicator }) {
+        const [goal, setGoal] = useState(routeParams.goal || "All");
+        const [geo, setGeo] = useState(routeParams.geo || "All");
+        const [source, setSource] = useState(routeParams.source || "All");
+        useEffect(() => setSearch(routeParams.q || ""), [routeParams.q]);
+        useEffect(() => setGoal(routeParams.goal || "All"), [routeParams.goal]);
+        useEffect(() => setGeo(routeParams.geo || "All"), [routeParams.geo]);
+        useEffect(() => setSource(routeParams.source || "All"), [routeParams.source]);
+        const dataSources = [...new Set(indicators.map(indicator => indicator.methodology.dataSource))].sort();
+        const geographies = [...new Set(indicators.map(indicator => indicator.methodology.geography))].sort();
+        const updateFilter = (key, value, setter) => {
+          setter(value);
+          onParamChange(key, value);
+        };
+        const libraryIndicators = useMemo(() => indicators.filter(indicator => {
+          const text = `${indicator.name} ${indicator.goal} ${indicator.why} ${indicator.methodology.dataSource}`.toLowerCase();
+          return (!search || text.includes(search.toLowerCase())) &&
+            (goal === "All" || indicator.goal === goal) &&
+            (geo === "All" || indicator.methodology.geography === geo) &&
+            (source === "All" || indicator.methodology.dataSource === source);
+        }), [search, goal, geo, source]);
         return (
           <section id="methods" className="px-4 py-16 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl">
-              <SectionHeading eyebrow="Data & Methods" title="Transparent methodology">
-                Each indicator includes an "About this measure" explanation to help residents understand how progress is measured.
+              <SectionHeading eyebrow="Data & Methods" title="Indicator library">
+                Search every measure, review source information, and open the detailed methodology for any indicator.
               </SectionHeading>
-              <div className="mb-6 rounded-3xl border border-civic-line bg-white p-6 shadow-sm">
-                <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-civic-ink">About this measure</p>
-                <h3 className="mt-2 text-2xl font-black">Infill Development</h3>
-                <p className="mt-3 max-w-4xl text-base leading-7 text-civic-muted">
-                  Measures the share of new population and employment growth occurring in already developed areas. Higher infill development can support efficient infrastructure use, stronger corridors, more walkable communities, and reduced pressure on undeveloped land.
-                </p>
+              <div className="mb-6 grid gap-3 rounded-3xl border border-civic-line bg-white p-4 shadow-sm md:grid-cols-4">
+                <label>
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-civic-muted">Search indicators</span>
+                  <input value={search} onChange={e => { setSearch(e.target.value); onParamChange("q", e.target.value); }} placeholder="Name, goal, source" className="focus-ring w-full rounded-xl border border-civic-line bg-white/95 px-3 py-2.5 text-sm shadow-sm" />
+                </label>
+                <Select label="Goal Area" value={goal} setValue={value => updateFilter("goal", value, setGoal)} options={goals.map(g => g.name)} />
+                <Select label="Geography" value={geo} setValue={value => updateFilter("geo", value, setGeo)} options={geographies} />
+                <Select label="Data Source" value={source} setValue={value => updateFilter("source", value, setSource)} options={dataSources} />
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {methodCards.map(([title, text]) => (
-                  <article key={title} className="rounded-2xl border border-civic-line bg-white p-5 shadow-sm">
-                    <h3 className="text-base font-extrabold">{title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-civic-muted">{text}</p>
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <p className="text-sm font-semibold text-civic-muted">{libraryIndicators.length} indicators shown</p>
+                <p className="hidden text-sm text-civic-muted sm:block">Detailed methods open in a reusable side drawer.</p>
+              </div>
+              <div className="grid gap-3">
+                {libraryIndicators.map(indicator => (
+                  <article key={indicator.name} className="rounded-2xl border border-civic-line bg-white p-4 shadow-sm">
+                    <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr_0.9fr_auto] lg:items-center">
+                      <div>
+                        <p className="text-xs font-extrabold uppercase tracking-wide" style={{ color: goalStyle(indicator.goal).color }}>{indicator.goal}</p>
+                        <h3 className="mt-1 text-base font-extrabold text-[#111111]">{indicator.name}</h3>
+                        <p className="mt-1 text-sm leading-6 text-civic-muted">{indicator.why}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-civic-muted">Data source</p>
+                        <p className="mt-1 text-sm font-semibold text-[#111111]">{indicator.methodology.dataSource}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-civic-muted">Update frequency</p>
+                        <p className="mt-1 text-sm font-semibold text-[#111111]">{indicator.methodology.updateFrequency}</p>
+                      </div>
+                      <button type="button" onClick={() => onOpenIndicator(indicator)} className="focus-ring rounded-full border border-[#620603]/25 bg-white px-4 py-2 text-sm font-extrabold text-[#620603] hover:bg-[#f6e8e7] lg:justify-self-end">
+                        View details
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -756,11 +874,19 @@
       function App() {
         const [route, setRoute] = useState(() => parseRouteHash());
         const [globalSearch, setGlobalSearch] = useState(route.params.q || "");
+        const [selectedIndicator, setSelectedIndicator] = useState(null);
         useEffect(() => {
           const handleHashChange = () => setRoute(parseRouteHash());
           window.addEventListener("hashchange", handleHashChange);
           handleHashChange();
           return () => window.removeEventListener("hashchange", handleHashChange);
+        }, []);
+        useEffect(() => {
+          const handleEscape = event => {
+            if (event.key === "Escape") setSelectedIndicator(null);
+          };
+          window.addEventListener("keydown", handleEscape);
+          return () => window.removeEventListener("keydown", handleEscape);
         }, []);
         const commitRoute = (section, params = {}) => {
           const hash = buildRouteHash(section, params);
@@ -778,12 +904,12 @@
         const sectionComponents = {
           overview: <Overview navigate={navigate} />,
           implementation: <ImplementationTracker search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} />,
-          indicators: <IndicatorsDashboard search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} />,
+          indicators: <IndicatorsDashboard search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} onOpenIndicator={setSelectedIndicator} />,
           areas: <ExploreAreas routeParams={route.params} onParamChange={updateRouteParam} />,
           investments: <InvestmentMap routeParams={route.params} onParamChange={updateRouteParam} />,
           priorities: <CommunityPriorities />,
           reports: <AnnualReports />,
-          methods: <DataMethods />
+          methods: <DataMethods search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} onOpenIndicator={setSelectedIndicator} />
         };
         return (
           <div className="flex min-h-screen flex-col">
@@ -791,6 +917,7 @@
             <main className="flex-1">
               {sectionComponents[activeSection]}
             </main>
+            <IndicatorDetailsDrawer indicator={selectedIndicator} onClose={() => setSelectedIndicator(null)} />
             <footer className="border-t border-civic-line bg-[#620603] px-6 py-[18px] text-center text-[0.85rem] font-semibold leading-5 text-white">
               Omaha Progress Tracker is a sample public-facing implementation dashboard concept for tracking comprehensive plan progress.
             </footer>
