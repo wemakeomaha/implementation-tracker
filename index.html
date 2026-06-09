@@ -121,12 +121,10 @@
       const { useEffect, useMemo, useState } = React;
 
       const navItems = [
-        ["Overview", "overview"],
+        ["Home", "overview"],
         ["Implementation Tracker", "implementation"],
         ["Indicators Dashboard", "indicators"],
-        ["Explore by Area", "areas"],
         ["Investment Map", "investments"],
-        ["Community Priorities", "priorities"],
         ["Annual Reports", "reports"],
         ["Data & Methods", "methods"]
       ];
@@ -290,14 +288,6 @@
         return { ...indicator, methodology: buildMethodology(indicator) };
       });
 
-      const areaProfiles = [
-        { name: "South Omaha", priorities: "Housing affordability, safer streets, small business support, youth opportunities, transit access.", projects: "24th Street corridor reinvestment, sidewalk gap repairs, affordable housing preservation.", indicators: "Walkability to transit, housing cost burden, public investment, small business activity, park access.", status: "Needs continued attention" },
-        { name: "North Omaha", priorities: "Neighborhood reinvestment, vacant property reuse, workforce pathways, public space upgrades.", projects: "Priority area infrastructure projects, youth job pathways, park improvements.", indicators: "Public investment, jobs accessible within 20 minutes, transit access, tree canopy.", status: "Early progress" },
-        { name: "Downtown / Urban Core", priorities: "Mixed-use redevelopment, housing production, safer walking connections, public gathering spaces.", projects: "Downtown mixed-use redevelopment, trail connection expansion, transit access improvements.", indicators: "Infill development, value per acre, non-auto trip share, multi-unit housing share.", status: "Strong progress" },
-        { name: "West Omaha", priorities: "Connected growth, park access, corridor planning, efficient infrastructure phasing.", projects: "Priority corridor planning, trail extensions, greenfield impact tracking.", indicators: "Greenfield land consumed, park access, infrastructure cost per new household or job.", status: "Monitoring growth impacts" },
-        { name: "Central Corridors", priorities: "Transit access, mixed-use corridors, missing-middle housing, safer crossings.", projects: "Corridor zoning updates, transit access improvements, sidewalk gap program.", indicators: "Growth in centers and corridors, jobs near transit, middle housing share.", status: "In progress" }
-      ];
-
       const investments = [
         "24th Street Corridor Reinvestment",
         "Sidewalk Gap Program",
@@ -306,16 +296,6 @@
         "Affordable Housing Preservation Program",
         "Downtown Mixed-Use Redevelopment",
         "Trail Connection Expansion"
-      ];
-
-      const priorityRows = [
-        ["Affordable housing", "Housing Choice", "Housing cost burden, affordable units created"],
-        ["Walkability", "Mobility & Access", "Walkability to schools, retail, parks, and transit"],
-        ["Better transit", "Mobility & Access", "Transit access, non-auto trips, VMT"],
-        ["Neighborhood reinvestment", "Equity & Neighborhood Investment", "Public investment by geography"],
-        ["Youth opportunities", "Economic Opportunity", "Youth job pathways, internships, workforce programs"],
-        ["Parks and public spaces", "Green Space & Resilience", "Park access, trail access, tree canopy"],
-        ["Small business support", "Economic Opportunity", "Small business activity, corridor reinvestment"]
       ];
 
       const statusStyles = {
@@ -427,33 +407,30 @@
       }
 
       function Header({ activeSection, setActiveSection }) {
-        const trackerTabs = navItems.filter(([, id]) => id !== "overview");
         return (
           <header className="sticky top-0 z-40 border-b border-civic-line bg-white">
             <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
-              <button
-                type="button"
-                onClick={() => setActiveSection("overview")}
+              <a
+                href="https://wemake.omaha.gov/"
                 className="focus-ring flex items-center rounded-lg"
-                aria-label="Go to overview page"
+                aria-label="Go to We Make Omaha website"
               >
                 <img
                   src="./assets/we-make-omaha-logo.jpg"
                   alt="We Make Omaha"
                   className="h-14 w-44 rounded-sm object-contain object-left sm:h-16 sm:w-56"
                 />
-              </button>
+              </a>
               <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-end gap-1 lg:flex" aria-label="Tracker sections">
-                {trackerTabs.map(([label, id]) => (
+                {navItems.map(([label, id]) => (
                   <button key={id} type="button" onClick={() => setActiveSection(id)} className={`whitespace-nowrap rounded-lg px-2 py-1.5 text-[0.72rem] font-extrabold leading-tight transition xl:px-2.5 xl:text-xs 2xl:px-3 2xl:text-sm ${activeSection === id ? "bg-[#620603] text-white" : "text-civic-muted hover:bg-[#f3f0e7] hover:text-[#111111]"}`}>
                     {label}
                   </button>
                 ))}
               </nav>
               <label className="flex w-full max-w-xs lg:hidden">
-                <select value={activeSection === "overview" ? "" : activeSection} onChange={event => event.target.value && setActiveSection(event.target.value)} className="focus-ring w-full rounded-xl border border-civic-line bg-white px-3 py-2.5 text-sm font-extrabold text-civic-ink shadow-sm">
-                  <option value="">Sections</option>
-                  {trackerTabs.map(([label, id]) => (
+                <select value={activeSection} onChange={event => setActiveSection(event.target.value)} className="focus-ring w-full rounded-xl border border-civic-line bg-white px-3 py-2.5 text-sm font-extrabold text-civic-ink shadow-sm">
+                  {navItems.map(([label, id]) => (
                     <option key={id} value={id}>{label}</option>
                   ))}
                 </select>
@@ -663,41 +640,6 @@
         );
       }
 
-      function ExploreAreas({ routeParams, onParamChange }) {
-        const [geoType, setGeoType] = useState(routeParams.type || "Neighborhood Area");
-        useEffect(() => setGeoType(routeParams.type || "Neighborhood Area"), [routeParams.type]);
-        return (
-          <section id="areas" className="border-y border-civic-line bg-[#efe9dc]/68 px-4 py-16 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-7xl">
-              <SectionHeading eyebrow="Explore by Area" title="See who and what areas are benefiting">
-                How plan actions and public investments are showing up in different parts of Omaha.
-              </SectionHeading>
-              <div className="mb-6 flex flex-wrap justify-center gap-2">
-                {["Citywide", "City Council District", "Neighborhood Area", "Priority Corridor", "Historically Underserved Area"].map(type => (
-                  <button key={type} onClick={() => { setGeoType(type); onParamChange("type", type); }} className={`rounded-full px-4 py-2 text-sm font-extrabold ring-1 ${geoType === type ? "bg-[#620603] text-white ring-[#620603]" : "bg-white/90 text-civic-muted ring-civic-line"}`}>{type}</button>
-                ))}
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {areaProfiles.map(area => (
-                  <article key={area.name} className="rounded-2xl border border-civic-line bg-white p-5 shadow-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="text-xl font-black text-[#111111]">{area.name}</h3>
-                      <span className="rounded-full bg-[#f3f0e7] px-2.5 py-1 text-xs font-bold text-civic-muted">{geoType}</span>
-                    </div>
-                    <dl className="mt-5 space-y-4 text-sm leading-6">
-                      <div><dt className="font-bold text-[#111111]">Key priorities from engagement</dt><dd className="mt-1 text-civic-muted">{area.priorities}</dd></div>
-                      <div><dt className="font-bold text-[#111111]">Current projects</dt><dd className="mt-1 text-civic-muted">{area.projects}</dd></div>
-                      <div><dt className="font-bold text-[#111111]">Key indicators</dt><dd className="mt-1 text-civic-muted">{area.indicators}</dd></div>
-                    </dl>
-                    <div className="mt-5 rounded-xl border-l-4 border-civic-orange bg-[#f3f0e7] p-3 text-sm font-extrabold text-civic-ink">Progress status: {area.status}</div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
-        );
-      }
-
       function InvestmentMap({ routeParams, onParamChange }) {
         const layers = ["Capital Improvement Projects", "Housing Investments", "Transportation Projects", "Parks Projects", "Economic Development Projects", "Planning Initiatives", "Priority Corridors", "Historically Underserved Areas"];
         const routeLayers = routeParams.layers ? routeParams.layers.split("|").filter(layer => layers.includes(layer)) : layers.slice(0, 4);
@@ -756,31 +698,13 @@
         );
       }
 
-      function CommunityPriorities() {
-        return (
-          <section id="priorities" className="border-y border-civic-line bg-[#efe9dc]/68 px-4 py-16 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-7xl">
-              <SectionHeading eyebrow="Community Priorities" title="From engagement themes to measurable outcomes">
-                Community input helped shape the plan's priorities. This tracker shows how those priorities are being translated into actions, investments, and measurable outcomes.
-              </SectionHeading>
-              <div className="overflow-hidden rounded-3xl border border-civic-line bg-white shadow-civic">
-                <div className="hidden grid-cols-3 gap-4 bg-[#f3f0e7] px-5 py-3 text-xs font-extrabold uppercase tracking-wide text-civic-muted md:grid">
-                  <span>Engagement Theme</span><span>Related Plan Goal</span><span>Related Indicator</span>
-                </div>
-                {priorityRows.map(row => (
-                  <div key={row[0]} className="grid gap-3 border-t border-civic-line px-5 py-4 text-sm first:border-t-0 md:grid-cols-3">
-                    <p className="font-bold">{row[0]}</p>
-                    <p className="text-civic-muted">{row[1]}</p>
-                    <p className="text-civic-muted">{row[2]}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        );
-      }
-
       function AnnualReports() {
+        const reportDocuments = [
+          ["2027 Annual Progress Report", "Summarizes completed actions, indicator trends, investment highlights and areas needing attention.", "Download report"],
+          ["Completed Actions", "Lists plan actions completed during the reporting year with lead departments and related goals.", "View summary"],
+          ["Public Investment Summary", "Shows where capital projects, housing programs and corridor investments are being directed.", "View summary"],
+          ["Community Priorities", "Connects public engagement themes to related plan goals, actions and indicators.", "View document"]
+        ];
         return (
           <section id="reports" className="px-4 py-16 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl">
@@ -796,6 +720,18 @@
                     <button key={button} className="rounded-xl bg-white px-4 py-2.5 text-sm font-extrabold text-civic-ink hover:bg-[#f3f0e7]">{button}</button>
                   ))}
                 </div>
+              </div>
+              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {reportDocuments.map(([title, description, action]) => (
+                  <article key={title} className="rounded-2xl border border-civic-line bg-white p-5 shadow-sm">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#620603]">Sample document</p>
+                    <h3 className="mt-2 text-lg font-black text-[#111111]">{title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-civic-muted">{description}</p>
+                    <button type="button" className="focus-ring mt-4 rounded-full border border-[#620603]/25 bg-white px-4 py-2 text-sm font-extrabold text-[#620603] hover:bg-[#f6e8e7]">
+                      {action} · Coming soon
+                    </button>
+                  </article>
+                ))}
               </div>
             </div>
           </section>
@@ -905,9 +841,7 @@
           overview: <Overview navigate={navigate} />,
           implementation: <ImplementationTracker search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} />,
           indicators: <IndicatorsDashboard search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} onOpenIndicator={setSelectedIndicator} />,
-          areas: <ExploreAreas routeParams={route.params} onParamChange={updateRouteParam} />,
           investments: <InvestmentMap routeParams={route.params} onParamChange={updateRouteParam} />,
-          priorities: <CommunityPriorities />,
           reports: <AnnualReports />,
           methods: <DataMethods search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} onOpenIndicator={setSelectedIndicator} />
         };
