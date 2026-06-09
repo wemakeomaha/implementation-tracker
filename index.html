@@ -126,10 +126,10 @@
       const { useEffect, useMemo, useState } = React;
 
       const navItems = [
-        ["Home", "overview"],
+        ["Home", "home"],
         ["Implementation Tracker", "implementation"],
         ["Indicators Dashboard", "indicators"],
-        ["Implementation Map", "investments"],
+        ["Implementation Map", "implementation-map"],
         ["Annual Reports", "reports"],
         ["Data & Methods", "methods"]
       ];
@@ -304,9 +304,9 @@
       ];
 
       const statusStyles = {
-        "Improving": "bg-[#e8f7f3] text-[#006057] ring-[#39C1A1]/35",
-        "Stable": "bg-[#eef1f3] text-[#58595B] ring-[#7C9BA9]/45",
-        "Needs Attention": "bg-[#f6e8e7] text-[#620603] ring-[#620603]/25",
+        "Improving": "bg-[#f3f0e7] text-[#1f1f1f] ring-[#D1CBBB]",
+        "Stable": "bg-[#f3f0e7] text-[#1f1f1f] ring-[#D1CBBB]",
+        "Needs Attention": "bg-[#f3f0e7] text-[#1f1f1f] ring-[#D1CBBB]",
         "Completed": "bg-[#e8f7f3] text-[#006057] ring-[#39C1A1]/35",
         "In Progress": "bg-[#eaf0ff] text-[#0441BE] ring-[#0441BE]/25",
         "Delayed": "bg-[#f6e8e7] text-[#620603] ring-[#620603]/25",
@@ -392,22 +392,40 @@
       }
 
       const sectionIds = navItems.map(([, id]) => id);
+      const routeAliases = {
+        overview: "home",
+        investments: "implementation-map"
+      };
+      const normalizeSection = section => {
+        const normalized = routeAliases[section] || section;
+        return sectionIds.includes(normalized) ? normalized : "home";
+      };
       const cleanRouteParams = params => Object.fromEntries(
-        Object.entries(params || {}).filter(([, value]) => value && value !== "All")
+        Object.entries(params || {}).filter(([key, value]) => key !== "section" && value && value !== "All")
       );
 
-      function parseRouteHash() {
-        const rawHash = window.location.hash.replace(/^#/, "");
-        const [rawSection, rawQuery = ""] = rawHash.split("?");
-        const section = sectionIds.includes(rawSection) ? rawSection : "overview";
-        const params = Object.fromEntries(new URLSearchParams(rawQuery));
+      function parseRouteLocation() {
+        const searchParams = new URLSearchParams(window.location.search);
+        let section = normalizeSection(searchParams.get("section") || "home");
+        const params = Object.fromEntries(searchParams);
+        if (window.location.hash) {
+          const rawHash = window.location.hash.replace(/^#/, "");
+          const [rawSection, rawQuery = ""] = rawHash.split("?");
+          section = normalizeSection(rawSection || section);
+          Object.assign(params, Object.fromEntries(new URLSearchParams(rawQuery)));
+        }
         return { section, params: cleanRouteParams(params) };
       }
 
-      function buildRouteHash(section, params = {}) {
-        const safeSection = sectionIds.includes(section) ? section : "overview";
-        const search = new URLSearchParams(cleanRouteParams(params)).toString();
-        return `#${safeSection}${search ? `?${search}` : ""}`;
+      function buildRouteUrl(section, params = {}) {
+        const url = new URL(window.location.href);
+        const safeSection = normalizeSection(section);
+        const search = new URLSearchParams();
+        search.set("section", safeSection);
+        Object.entries(cleanRouteParams(params)).forEach(([key, value]) => search.set(key, value));
+        url.search = search.toString();
+        url.hash = "";
+        return url;
       }
 
       function Header({ activeSection, setActiveSection }) {
@@ -416,6 +434,8 @@
             <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
               <a
                 href="https://wemake.omaha.gov/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="focus-ring flex items-center rounded-lg"
                 aria-label="Go to We Make Omaha website"
               >
@@ -799,14 +819,21 @@
       }
 
       function App() {
-        const [route, setRoute] = useState(() => parseRouteHash());
+        const [route, setRoute] = useState(() => parseRouteLocation());
         const [globalSearch, setGlobalSearch] = useState(route.params.q || "");
         const [selectedIndicator, setSelectedIndicator] = useState(null);
         useEffect(() => {
-          const handleHashChange = () => setRoute(parseRouteHash());
-          window.addEventListener("hashchange", handleHashChange);
-          handleHashChange();
-          return () => window.removeEventListener("hashchange", handleHashChange);
+          const syncRoute = () => {
+            const nextRoute = parseRouteLocation();
+            const normalizedUrl = buildRouteUrl(nextRoute.section, nextRoute.params);
+            if (window.location.href !== normalizedUrl.href) {
+              window.history.replaceState(null, "", normalizedUrl);
+            }
+            setRoute(nextRoute);
+          };
+          window.addEventListener("popstate", syncRoute);
+          syncRoute();
+          return () => window.removeEventListener("popstate", syncRoute);
         }, []);
         useEffect(() => {
           const handleEscape = event => {
@@ -816,12 +843,15 @@
           return () => window.removeEventListener("keydown", handleEscape);
         }, []);
         const commitRoute = (section, params = {}) => {
-          const hash = buildRouteHash(section, params);
-          if (window.location.hash !== hash) {
-            window.location.hash = hash;
+          const nextSection = normalizeSection(section);
+          const nextParams = cleanRouteParams(params);
+          const url = buildRouteUrl(nextSection, nextParams);
+          if (window.location.href !== url.href) {
+            window.history.pushState(null, "", url);
           } else {
-            setRoute({ section, params: cleanRouteParams(params) });
+            window.history.replaceState(null, "", url);
           }
+          setRoute({ section: nextSection, params: nextParams });
         };
         const navigate = (section, params = {}) => commitRoute(section, params);
         const updateRouteParam = (key, value) => {
@@ -829,10 +859,10 @@
         };
         const activeSection = route.section;
         const sectionComponents = {
-          overview: <Overview navigate={navigate} />,
+          home: <Overview navigate={navigate} />,
           implementation: <ImplementationTracker search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} />,
           indicators: <IndicatorsDashboard search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} onOpenIndicator={setSelectedIndicator} />,
-          investments: <InvestmentMap routeParams={route.params} onParamChange={updateRouteParam} />,
+          "implementation-map": <InvestmentMap routeParams={route.params} onParamChange={updateRouteParam} />,
           reports: <AnnualReports />,
           methods: <DataMethods search={globalSearch} setSearch={setGlobalSearch} routeParams={route.params} onParamChange={updateRouteParam} onOpenIndicator={setSelectedIndicator} />
         };
@@ -843,7 +873,7 @@
               {sectionComponents[activeSection]}
             </main>
             <IndicatorDetailsDrawer indicator={selectedIndicator} onClose={() => setSelectedIndicator(null)} />
-            <footer className="border-t border-civic-line bg-[#620603] px-6 py-[18px] text-center text-[0.85rem] font-semibold leading-5 text-white">
+            <footer className="border-t border-civic-line bg-[#620603] px-6 py-4 text-center text-[0.85rem] font-semibold leading-5 text-white">
               Omaha Progress Tracker is a sample public-facing implementation dashboard concept for tracking comprehensive plan progress.
             </footer>
           </div>
