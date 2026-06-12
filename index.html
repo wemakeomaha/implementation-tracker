@@ -555,8 +555,29 @@
       }
 
       function Header({ activeSection, setActiveSection }) {
+        const [mobileOpen, setMobileOpen] = useState(false);
+        useEffect(() => {
+          const handleKeydown = event => {
+            if (event.key === "Escape") setMobileOpen(false);
+          };
+          const handlePointerDown = event => {
+            if (!event.target.closest("[data-mobile-navigation]")) setMobileOpen(false);
+          };
+          document.addEventListener("keydown", handleKeydown);
+          document.addEventListener("mousedown", handlePointerDown);
+          document.addEventListener("touchstart", handlePointerDown);
+          return () => {
+            document.removeEventListener("keydown", handleKeydown);
+            document.removeEventListener("mousedown", handlePointerDown);
+            document.removeEventListener("touchstart", handlePointerDown);
+          };
+        }, []);
+        const selectMobileSection = id => {
+          setActiveSection(id);
+          setMobileOpen(false);
+        };
         return (
-          <header className="sticky top-0 z-40 border-b border-civic-line bg-white">
+          <header className="sticky top-0 z-40 border-b border-civic-line bg-white" data-mobile-navigation>
             <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
               <a
                 href="https://wemake.omaha.gov/"
@@ -578,14 +599,36 @@
                   </button>
                 ))}
               </nav>
-              <label className="flex w-full max-w-xs lg:hidden">
-                <select value={activeSection} onChange={event => setActiveSection(event.target.value)} className="focus-ring w-full rounded-xl border border-civic-line bg-white px-3 py-2.5 text-sm font-extrabold text-civic-ink shadow-sm">
-                  {navItems.map(([label, id]) => (
-                    <option key={id} value={id}>{label}</option>
-                  ))}
-                </select>
-              </label>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(open => !open)}
+                className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-xl border border-civic-line bg-white text-[#111111] shadow-sm lg:hidden"
+                aria-label="Open navigation menu"
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-navigation"
+              >
+                <span className="sr-only">Open navigation menu</span>
+                <span className="flex w-5 flex-col gap-1.5" aria-hidden="true">
+                  <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "translate-y-2 rotate-45" : ""}`}></span>
+                  <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "opacity-0" : ""}`}></span>
+                  <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "-translate-y-2 -rotate-45" : ""}`}></span>
+                </span>
+              </button>
             </div>
+            <nav id="mobile-navigation" className={`${mobileOpen ? "block" : "hidden"} border-t border-civic-line bg-white px-4 py-3 shadow-lg lg:hidden`} aria-label="Mobile tracker sections">
+              <div className="mx-auto grid max-w-7xl gap-2">
+                {navItems.map(([label, id]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => selectMobileSection(id)}
+                    className={`focus-ring w-full rounded-xl px-4 py-3 text-left text-sm font-extrabold ${activeSection === id ? "bg-[#620603] text-white" : "bg-white text-[#111111] hover:bg-[#f3f0e7]"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </nav>
           </header>
         );
       }
