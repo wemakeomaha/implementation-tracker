@@ -293,13 +293,90 @@
       });
 
       const investments = [
-        "24th Street Corridor Reinvestment",
-        "Sidewalk Gap Program",
-        "Transit Access Improvements",
-        "Neighborhood Park Upgrades",
-        "Affordable Housing Preservation Program",
-        "Downtown Mixed-Use Redevelopment",
-        "Trail Connection Expansion"
+        {
+          name: "24th Street Corridor Reinvestment",
+          projectType: "Corridor reinvestment",
+          status: "In Progress",
+          phase: "Design and early implementation",
+          department: "Planning",
+          year: "2027",
+          relatedGoal: "Economic Development",
+          relatedIndicators: ["Jobs Near Transit", "Public Investment in Historically Underserved Areas"],
+          sampleInvestment: "$18.2M",
+          description: "Sample corridor investment connecting streetscape, small business support, public space and mixed-use redevelopment activity."
+        },
+        {
+          name: "Sidewalk Gap Program",
+          projectType: "Transportation",
+          status: "Ongoing",
+          phase: "Construction",
+          department: "Public Works",
+          year: "2027",
+          relatedGoal: "Mobility",
+          relatedIndicators: ["Households within a 15-Minute Walk of Transit", "Non-Auto Trip Share"],
+          sampleInvestment: "$9.6M",
+          description: "Sample program showing how sidewalk gaps near schools, parks and transit stops could be tracked over time."
+        },
+        {
+          name: "Transit Access Improvements",
+          projectType: "Transportation",
+          status: "Planned",
+          phase: "Scoping",
+          department: "Metro Transit",
+          year: "2028",
+          relatedGoal: "Mobility",
+          relatedIndicators: ["Households within a 15-Minute Walk of Transit", "Jobs Near Transit"],
+          sampleInvestment: "$7.4M",
+          description: "Sample transit access project focused on safer crossings, better stop access and stronger links to employment areas."
+        },
+        {
+          name: "Neighborhood Park Upgrades",
+          projectType: "Parks",
+          status: "In Progress",
+          phase: "Construction",
+          department: "Parks, Recreation and Public Property",
+          year: "2027",
+          relatedGoal: "Sustainability & Resiliency",
+          relatedIndicators: ["Households within a 15-Minute Walk of Parks or Trails", "Tree Canopy Coverage"],
+          sampleInvestment: "$11.1M",
+          description: "Sample public space improvements that could connect park access, shade, trails and neighborhood gathering places."
+        },
+        {
+          name: "Affordable Housing Preservation Program",
+          projectType: "Housing",
+          status: "Ongoing",
+          phase: "Program delivery",
+          department: "Housing and Community Development",
+          year: "2027",
+          relatedGoal: "Housing",
+          relatedIndicators: ["Housing Cost Burden", "Middle Housing Share"],
+          sampleInvestment: "$22.7M",
+          description: "Sample housing investment showing preservation, affordability support and links to neighborhood stability indicators."
+        },
+        {
+          name: "Downtown Mixed-Use Redevelopment",
+          projectType: "Redevelopment",
+          status: "Planned",
+          phase: "Entitlements",
+          department: "Economic Development",
+          year: "2028",
+          relatedGoal: "Land Use & Built Form",
+          relatedIndicators: ["Infill Development", "Growth in Centers and Corridors"],
+          sampleInvestment: "$12.5M",
+          description: "Sample redevelopment project illustrating infill growth, mixed-use activity and land productivity in the urban core."
+        },
+        {
+          name: "Trail Connection Expansion",
+          projectType: "Parks",
+          status: "In Progress",
+          phase: "Design",
+          department: "Public Works",
+          year: "2027",
+          relatedGoal: "Mobility",
+          relatedIndicators: ["Households within a 15-Minute Walk of Parks or Trails", "Non-Auto Trip Share"],
+          sampleInvestment: "$2.9M",
+          description: "Sample trail connection project linking neighborhoods to parks, transit and daily destinations."
+        }
       ];
 
       const statusStyles = {
@@ -661,49 +738,244 @@
 
       function InvestmentMap({ routeParams, onParamChange }) {
         const layers = ["Capital Improvement Projects", "Housing Projects", "Transportation Projects", "Parks Projects", "Economic Development Projects", "Planning Initiatives", "Priority Corridors"];
+        const options = [
+          ["option1", "Option 1: Map + cards"],
+          ["option2", "Option 2: Summary dashboard"],
+          ["option3", "Option 3: Filter-first"],
+          ["option4", "Option 4: Story-map"],
+          ["option5", "Option 5: Side details"]
+        ];
+        const [activeOption, setActiveOption] = useState("option1");
         const [activeLayers, setActiveLayers] = useState(layers.slice(0, 4));
+        const [selectedProject, setSelectedProject] = useState(investments[0]);
+        const [filters, setFilters] = useState({ projectType: "All", status: "All", relatedGoal: "All", department: "All", year: "All" });
         const toggle = layer => setActiveLayers(prev => prev.includes(layer) ? prev.filter(item => item !== layer) : [...prev, layer]);
+        const unique = key => [...new Set(investments.map(project => project[key]))].sort();
+        const setFilter = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
+        const filteredProjects = investments.filter(project =>
+          (filters.projectType === "All" || project.projectType === filters.projectType) &&
+          (filters.status === "All" || project.status === filters.status) &&
+          (filters.relatedGoal === "All" || project.relatedGoal === filters.relatedGoal) &&
+          (filters.department === "All" || project.department === filters.department) &&
+          (filters.year === "All" || project.year === filters.year)
+        );
+        const projectMarkers = investments.map((project, index) => ({ project, index, left: 12 + (index * 11) % 72, top: 18 + (index * 17) % 62 }));
+
+        function LayerPanel({ listOnly = false }) {
+          return (
+            <div className="rounded-3xl border border-civic-line bg-white p-5 shadow-sm">
+              <h3 className="text-lg font-extrabold">{listOnly ? "Map includes" : "Map layers"}</h3>
+              {listOnly && <p className="mt-2 text-sm leading-6 text-civic-muted">Sample map contents shown as informational categories for this prototype.</p>}
+              <div className="mt-4 space-y-3">
+                {layers.map(layer => listOnly ? (
+                  <div key={layer} className="flex items-center gap-3 rounded-xl border border-civic-line bg-white/70 p-3 text-sm font-semibold">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#620603]"></span>
+                    <span>{layer}</span>
+                  </div>
+                ) : (
+                  <label key={layer} className="flex cursor-pointer items-center gap-3 rounded-xl border border-civic-line bg-white/70 p-3 text-sm font-semibold hover:bg-[#f3f0e7]">
+                    <input type="checkbox" checked={activeLayers.includes(layer)} onChange={() => toggle(layer)} className="h-4 w-4 accent-civic-orange" />
+                    <span>{layer}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        function PlaceholderMap({ projects = investments, compact = false, selectable = false }) {
+          return (
+            <div className={`map-grid relative overflow-hidden rounded-2xl bg-[#e9e3d5] ${compact ? "min-h-[260px]" : "min-h-[430px]"}`}>
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(57,193,161,.20),transparent_32%),linear-gradient(45deg,transparent_58%,rgba(4,65,190,.13)_58%,rgba(4,65,190,.13)_62%,transparent_62%)]"></div>
+              {projectMarkers.filter(marker => projects.some(project => project.name === marker.project.name)).map(({ project, index, left, top }) => {
+                const active = selectedProject?.name === project.name;
+                const markerClass = `absolute rounded-full border-2 border-white px-3 py-1 text-xs font-bold text-white shadow-lg ${active ? "bg-[#FA4F1E] ring-4 ring-white/80" : "bg-civic-ink"}`;
+                return selectable ? (
+                  <button key={project.name} type="button" onClick={() => setSelectedProject(project)} className={markerClass} style={{ left: `${left}%`, top: `${top}%` }} aria-label={`Show details for ${project.name}`}>
+                    {index + 1}
+                  </button>
+                ) : (
+                  <div key={project.name} className={markerClass} style={{ left: `${left}%`, top: `${top}%` }}>
+                    {index + 1}
+                  </div>
+                );
+              })}
+              <div className="absolute bottom-4 left-4 max-w-sm rounded-2xl bg-white p-4 shadow-sm">
+                <p className="text-sm font-extrabold">Styled GIS placeholder</p>
+                <p className="mt-1 text-sm leading-6 text-civic-muted">Future versions could connect these layers to city GIS services, capital improvement records, and program data.</p>
+              </div>
+            </div>
+          );
+        }
+
+        function ProjectCard({ project, index, compact = false, selectable = false }) {
+          const active = selectedProject?.name === project.name;
+          return (
+            <article className={`rounded-xl border p-3 ${active ? "border-[#FA4F1E] bg-white" : "border-transparent bg-[#f3f0e7]"}`}>
+              <button type="button" disabled={!selectable} onClick={() => selectable && setSelectedProject(project)} className={`w-full text-left ${selectable ? "cursor-pointer" : "cursor-default"}`}>
+                <p className="text-sm font-bold"><span className="mr-2 inline-grid h-6 w-6 place-items-center rounded-full bg-civic-ink text-xs text-white">{index + 1}</span>{project.name}</p>
+                <div className="mt-3 flex flex-wrap gap-2 text-[0.7rem] font-extrabold uppercase tracking-wide text-civic-muted">
+                  <span className="nowrap-pill rounded-full bg-white px-2 py-1">{project.projectType}</span>
+                  <span className="nowrap-pill rounded-full bg-white px-2 py-1">{project.status}</span>
+                  <span className="nowrap-pill rounded-full bg-white px-2 py-1">{project.relatedGoal}</span>
+                </div>
+                {!compact && <p className="mt-3 text-xs font-semibold leading-5 text-civic-muted">{project.description}</p>}
+                {!compact && <p className="mt-2 text-xs leading-5 text-civic-muted"><strong>Related indicators:</strong> {project.relatedIndicators.join(", ")}</p>}
+              </button>
+            </article>
+          );
+        }
+
+        function ProjectDetails({ project }) {
+          return (
+            <aside className="rounded-3xl border border-civic-line bg-white p-5 shadow-sm">
+              <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#620603]">Selected sample project</p>
+              <h3 className="mt-2 text-2xl font-black text-[#111111]">{project.name}</h3>
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                {[
+                  ["Project type", project.projectType],
+                  ["Status", project.status],
+                  ["Phase", project.phase],
+                  ["Department", project.department],
+                  ["Related goal", project.relatedGoal],
+                  ["Sample investment", project.sampleInvestment]
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl bg-[#f3f0e7] p-3">
+                    <p className="text-xs font-extrabold uppercase tracking-wide text-civic-muted">{label}</p>
+                    <p className="mt-1 font-bold text-[#111111]">{value}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-sm leading-6 text-civic-muted">{project.description}</p>
+              <p className="mt-3 text-sm leading-6 text-civic-muted"><strong>Related indicators:</strong> {project.relatedIndicators.join(", ")}</p>
+            </aside>
+          );
+        }
+
+        const summaryCards = [
+          ["37", "projects tracked"],
+          ["7", "project types"],
+          ["8", "plan goals connected"],
+          ["$84.5M", "sample investment"]
+        ];
+        const themes = [
+          ["Corridor reinvestment", "Corridor projects connect land use, small business support, streetscape improvements and public investment.", investments.filter(project => project.projectType === "Corridor reinvestment" || project.projectType === "Redevelopment")],
+          ["Housing and neighborhood investment", "Housing and neighborhood investments focus on stability, affordability and access to daily needs.", investments.filter(project => project.projectType === "Housing" || project.name.includes("Park"))],
+          ["Transportation and access", "Transportation projects show how sidewalk, transit and trail improvements can support safer access.", investments.filter(project => project.relatedGoal === "Mobility")],
+          ["Parks and public space", "Parks and public space investments connect outdoor access, trails, tree canopy and community gathering places.", investments.filter(project => project.projectType === "Parks")]
+        ];
+
+        const renderOption = () => {
+          if (activeOption === "option2") {
+            return (
+              <div className="space-y-6">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {summaryCards.map(([value, label]) => (
+                    <div key={label} className="rounded-2xl border border-civic-line bg-white p-4 shadow-sm">
+                      <p className="text-3xl font-black text-[#620603]">{value}</p>
+                      <p className="mt-1 text-sm font-semibold text-civic-muted">{label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
+                  <LayerPanel listOnly />
+                  <div className="overflow-hidden rounded-3xl border border-civic-line bg-white shadow-civic">
+                    <PlaceholderMap />
+                    <div className="grid gap-3 border-t border-civic-line p-4 md:grid-cols-2">
+                      {investments.slice(0, 4).map((project, index) => <ProjectCard key={project.name} project={project} index={index} compact />)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          if (activeOption === "option3") {
+            return (
+              <div className="rounded-3xl border border-civic-line bg-white p-4 shadow-civic">
+                <div className="grid gap-3 md:grid-cols-5">
+                  {[
+                    ["Project type", "projectType", unique("projectType")],
+                    ["Status", "status", unique("status")],
+                    ["Plan goal", "relatedGoal", unique("relatedGoal")],
+                    ["Department", "department", unique("department")],
+                    ["Year", "year", unique("year")]
+                  ].map(([label, key, options]) => (
+                    <Select key={key} label={label} value={filters[key]} setValue={value => setFilter(key, value)} options={options} />
+                  ))}
+                </div>
+                <div className="mt-5 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+                  <PlaceholderMap projects={filteredProjects.length ? filteredProjects : investments} />
+                  <div className="space-y-3">
+                    <p className="text-sm font-extrabold text-civic-muted">{filteredProjects.length} sample results shown</p>
+                    {(filteredProjects.length ? filteredProjects : investments).map((project, index) => <ProjectCard key={project.name} project={project} index={index} compact />)}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          if (activeOption === "option4") {
+            return (
+              <div className="space-y-5">
+                {themes.map(([title, text, projects]) => (
+                  <section key={title} className="rounded-3xl border border-civic-line bg-white p-5 shadow-sm">
+                    <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+                      <PlaceholderMap projects={projects.length ? projects : investments.slice(0, 2)} compact />
+                      <div>
+                        <h3 className="text-xl font-black text-[#111111]">{title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-civic-muted">{text}</p>
+                        <div className="mt-4 grid gap-3 md:grid-cols-2">
+                          {(projects.length ? projects : investments.slice(0, 2)).slice(0, 3).map((project, index) => <ProjectCard key={project.name} project={project} index={index} compact />)}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                ))}
+              </div>
+            );
+          }
+          if (activeOption === "option5") {
+            return (
+              <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+                <div className="overflow-hidden rounded-3xl border border-civic-line bg-white shadow-civic">
+                  <PlaceholderMap selectable />
+                  <div className="grid gap-3 border-t border-civic-line p-4 md:grid-cols-2">
+                    {investments.map((project, index) => <ProjectCard key={project.name} project={project} index={index} compact selectable />)}
+                  </div>
+                </div>
+                <ProjectDetails project={selectedProject} />
+              </div>
+            );
+          }
+          return (
+            <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
+              <LayerPanel />
+              <div className="overflow-hidden rounded-3xl border border-civic-line bg-white shadow-civic">
+                <PlaceholderMap />
+                <div className="grid gap-3 border-t border-civic-line p-4 md:grid-cols-2">
+                  {investments.map((project, index) => <ProjectCard key={project.name} project={project} index={index} />)}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
         return (
           <section id="investments" className="px-4 py-16 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl">
               <SectionHeading eyebrow="Implementation Map" title="Where public resources are going">
                 Public investments connect adopted plan priorities to capital projects, housing programs, corridor work, and neighborhood improvements.
               </SectionHeading>
-              <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
-                <div className="rounded-3xl border border-civic-line bg-white p-5 shadow-sm">
-                  <h3 className="text-lg font-extrabold">Map layers</h3>
-                  <div className="mt-4 space-y-3">
-                    {layers.map(layer => (
-                      <label key={layer} className="flex cursor-pointer items-center gap-3 rounded-xl border border-civic-line bg-white/70 p-3 text-sm font-semibold hover:bg-[#f3f0e7]">
-                        <input type="checkbox" checked={activeLayers.includes(layer)} onChange={() => toggle(layer)} className="h-4 w-4 accent-civic-orange" />
-                        <span>{layer}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div className="overflow-hidden rounded-3xl border border-civic-line bg-white shadow-civic">
-                  <div className="map-grid relative min-h-[430px] bg-[#e9e3d5]">
-                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(57,193,161,.20),transparent_32%),linear-gradient(45deg,transparent_58%,rgba(4,65,190,.13)_58%,rgba(4,65,190,.13)_62%,transparent_62%)]"></div>
-                    {investments.map((project, index) => (
-                      <div key={project} className="absolute rounded-full border-2 border-white bg-civic-ink px-3 py-1 text-xs font-bold text-white shadow-lg" style={{ left: `${12 + (index * 11) % 72}%`, top: `${18 + (index * 17) % 62}%` }}>
-                        {index + 1}
-                      </div>
-                    ))}
-                    <div className="absolute bottom-4 left-4 max-w-sm rounded-2xl bg-white p-4 shadow-sm">
-                      <p className="text-sm font-extrabold">Styled GIS placeholder</p>
-                      <p className="mt-1 text-sm leading-6 text-civic-muted">Future versions could connect these layers to city GIS services, capital improvement records, and program data.</p>
-                    </div>
-                  </div>
-                  <div className="grid gap-3 border-t border-civic-line p-4 md:grid-cols-2">
-                    {investments.map((project, index) => (
-                      <article key={project} className="rounded-xl bg-[#f3f0e7] p-3">
-                        <p className="text-sm font-bold"><span className="mr-2 inline-grid h-6 w-6 place-items-center rounded-full bg-civic-ink text-xs text-white">{index + 1}</span>{project}</p>
-                        <p className="mt-2 text-xs font-semibold text-civic-muted">Sample project card - funding, phase, geography, and related indicators can be added.</p>
-                      </article>
-                    ))}
-                  </div>
+              <div className="mb-6 rounded-3xl border border-civic-line bg-white p-4 shadow-sm">
+                <p className="text-sm font-extrabold text-[#620603]">Prototype options for review. Select a layout to preview how the Implementation Map could be presented.</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {options.map(([id, label]) => (
+                    <button key={id} type="button" onClick={() => setActiveOption(id)} className={`focus-ring nowrap-pill rounded-full px-4 py-2 text-sm font-extrabold ring-1 ${activeOption === id ? "bg-[#620603] text-white ring-[#620603]" : "bg-white text-civic-muted ring-civic-line hover:text-[#111111]"}`}>
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
+              {renderOption()}
             </div>
           </section>
         );
