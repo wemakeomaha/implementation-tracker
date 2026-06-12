@@ -88,12 +88,6 @@
       #root {
         isolation: isolate;
       }
-      .map-grid {
-        background-image:
-          linear-gradient(rgba(98, 6, 3, 0.13) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(98, 6, 3, 0.13) 1px, transparent 1px);
-        background-size: 44px 44px;
-      }
       .focus-ring:focus { outline: 3px solid rgba(250, 79, 30, 0.35); outline-offset: 2px; }
       .nowrap-pill {
         align-items: center;
@@ -291,16 +285,6 @@
         const indicator = { goal, name, value, direction, status, why, year, progress };
         return { ...indicator, methodology: buildMethodology(indicator) };
       });
-
-      const investments = [
-        "24th Street Corridor Reinvestment",
-        "Sidewalk Gap Program",
-        "Transit Access Improvements",
-        "Neighborhood Park Upgrades",
-        "Affordable Housing Preservation Program",
-        "Downtown Mixed-Use Redevelopment",
-        "Trail Connection Expansion"
-      ];
 
       const statusStyles = {
         "Improving": "bg-[#e8f7f3] text-[#006057] ring-[#39C1A1]/35",
@@ -661,54 +645,41 @@
 
       function InvestmentMap({ routeParams, onParamChange }) {
         const layers = ["Capital Improvement Projects", "Housing Investments", "Transportation Projects", "Parks Projects", "Economic Development Projects", "Planning Initiatives", "Priority Corridors", "Historically Underserved Areas"];
-        const routeLayers = routeParams.layers ? routeParams.layers.split("|").filter(layer => layers.includes(layer)) : layers.slice(0, 4);
-        const [activeLayers, setActiveLayers] = useState(routeLayers);
-        useEffect(() => {
-          setActiveLayers(routeParams.layers ? routeParams.layers.split("|").filter(layer => layers.includes(layer)) : layers.slice(0, 4));
-        }, [routeParams.layers]);
-        const toggle = layer => setActiveLayers(prev => {
-          const next = prev.includes(layer) ? prev.filter(item => item !== layer) : [...prev, layer];
-          onParamChange("layers", next.join("|"));
-          return next;
-        });
+        const mapUrl = "https://apps.dcgis.org/vertigisstudio/web/?app=848e58001fd4404882a6b9b4f111769f";
         return (
           <section id="investments" className="px-4 py-16 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl">
               <SectionHeading eyebrow="Implementation Map" title="Where public resources are going">
-                Public investments connect adopted plan priorities to capital projects, housing programs, corridor work, and neighborhood improvements.
+                Explore public investments, projects and implementation activity connected to comprehensive plan priorities.
               </SectionHeading>
               <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
                 <div className="rounded-3xl border border-civic-line bg-white p-5 shadow-sm">
-                  <h3 className="text-lg font-extrabold">Map layers</h3>
-                  <div className="mt-4 space-y-3">
+                  <h3 className="text-lg font-extrabold">Map includes</h3>
+                  <p className="mt-2 text-sm leading-6 text-civic-muted">These layers are provided inside the public map. Use the map tools to explore and turn available information on or off.</p>
+                  <ul className="mt-4 space-y-2">
                     {layers.map(layer => (
-                      <label key={layer} className="flex cursor-pointer items-center gap-3 rounded-xl border border-civic-line bg-white/70 p-3 text-sm font-semibold hover:bg-[#f3f0e7]">
-                        <input type="checkbox" checked={activeLayers.includes(layer)} onChange={() => toggle(layer)} className="h-4 w-4 accent-civic-orange" />
+                      <li key={layer} className="flex items-center gap-3 rounded-xl border border-civic-line bg-white/70 p-3 text-sm font-semibold">
+                        <span className="h-2.5 w-2.5 rounded-full bg-[#620603]"></span>
                         <span>{layer}</span>
-                      </label>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
-                <div className="overflow-hidden rounded-3xl border border-civic-line bg-white shadow-civic">
-                  <div className="map-grid relative min-h-[430px] bg-[#e9e3d5]">
-                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(57,193,161,.20),transparent_32%),linear-gradient(45deg,transparent_58%,rgba(4,65,190,.13)_58%,rgba(4,65,190,.13)_62%,transparent_62%)]"></div>
-                    {investments.map((project, index) => (
-                      <div key={project} className="absolute rounded-full border-2 border-white bg-civic-ink px-3 py-1 text-xs font-bold text-white shadow-lg" style={{ left: `${12 + (index * 11) % 72}%`, top: `${18 + (index * 17) % 62}%` }}>
-                        {index + 1}
-                      </div>
-                    ))}
-                    <div className="absolute bottom-4 left-4 max-w-sm rounded-2xl bg-white p-4 shadow-sm">
-                      <p className="text-sm font-extrabold">Styled GIS placeholder</p>
-                      <p className="mt-1 text-sm leading-6 text-civic-muted">Future versions could connect these layers to city GIS services, capital improvement records, and program data.</p>
-                    </div>
-                  </div>
-                  <div className="grid gap-3 border-t border-civic-line p-4 md:grid-cols-2">
-                    {investments.map((project, index) => (
-                      <article key={project} className="rounded-xl bg-[#f3f0e7] p-3">
-                        <p className="text-sm font-bold"><span className="mr-2 inline-grid h-6 w-6 place-items-center rounded-full bg-civic-ink text-xs text-white">{index + 1}</span>{project}</p>
-                        <p className="mt-2 text-xs font-semibold text-civic-muted">Sample project card - funding, phase, geography, and related indicators can be added.</p>
-                      </article>
-                    ))}
+                <div className="rounded-3xl border border-civic-line bg-white p-3 shadow-civic sm:p-4">
+                  <p className="px-1 pb-3 text-sm leading-6 text-civic-muted">Use the map tools to explore public investments, projects and implementation activity across Omaha.</p>
+                  <iframe
+                    src={mapUrl}
+                    title="Omaha implementation map"
+                    width="100%"
+                    height="720"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="h-[560px] w-full rounded-2xl border border-civic-line sm:h-[640px] lg:h-[720px]"
+                  ></iframe>
+                  <div className="px-1 pt-3">
+                    <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="focus-ring nowrap-pill rounded-full border border-[#620603]/25 bg-white px-4 py-2 text-sm font-extrabold text-[#620603] hover:bg-[#f6e8e7]">
+                      Open full map in a new tab
+                    </a>
                   </div>
                 </div>
               </div>
