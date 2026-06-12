@@ -88,6 +88,49 @@
       #root {
         isolation: isolate;
       }
+      html.access-text-large { font-size: 112.5%; }
+      html.access-text-small { font-size: 93.75%; }
+      html.access-reduce-motion { scroll-behavior: auto; }
+      html.access-reduce-motion *,
+      html.access-reduce-motion *::before,
+      html.access-reduce-motion *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
+      html.access-high-contrast body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      html.access-high-contrast body::before,
+      html.access-high-contrast body::after {
+        display: none !important;
+      }
+      html.access-high-contrast header,
+      html.access-high-contrast article,
+      html.access-high-contrast aside,
+      html.access-high-contrast section > div > div,
+      html.access-high-contrast .brand-panel,
+      html.access-high-contrast .shadow-civic {
+        background-color: #ffffff !important;
+        border-color: #000000 !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+      }
+      html.access-high-contrast p,
+      html.access-high-contrast h1,
+      html.access-high-contrast h2,
+      html.access-high-contrast h3,
+      html.access-high-contrast label,
+      html.access-high-contrast span {
+        color: #000000 !important;
+      }
+      html.access-high-contrast button,
+      html.access-high-contrast select,
+      html.access-high-contrast input {
+        border-color: #000000 !important;
+      }
       .map-grid {
         background-image:
           linear-gradient(rgba(98, 6, 3, 0.13) 1px, transparent 1px),
@@ -951,10 +994,124 @@
         );
       }
 
+      const defaultAccessPreferences = {
+        textSize: "normal",
+        highContrast: false,
+        reduceMotion: false
+      };
+
+      function getStoredAccessPreferences() {
+        try {
+          const stored = window.localStorage.getItem("omahaTrackerAccessibility");
+          return stored ? { ...defaultAccessPreferences, ...JSON.parse(stored) } : defaultAccessPreferences;
+        } catch (error) {
+          return defaultAccessPreferences;
+        }
+      }
+
+      function FloatingAccessTools({ preferences, setPreferences }) {
+        const [accessOpen, setAccessOpen] = useState(false);
+        const [languageOpen, setLanguageOpen] = useState(false);
+        const languages = ["English", "Spanish", "French", "Arabic", "Vietnamese", "Somali"];
+        const updatePreference = changes => setPreferences(prev => ({ ...prev, ...changes }));
+        const resetPreferences = () => setPreferences(defaultAccessPreferences);
+
+        useEffect(() => {
+          const handleEscape = event => {
+            if (event.key === "Escape") {
+              setAccessOpen(false);
+              setLanguageOpen(false);
+            }
+          };
+          window.addEventListener("keydown", handleEscape);
+          return () => window.removeEventListener("keydown", handleEscape);
+        }, []);
+
+        return (
+          <div className="fixed bottom-4 left-4 z-50 flex max-w-[calc(100vw-2rem)] flex-col items-start gap-3 sm:bottom-6 sm:left-6">
+            {accessOpen && (
+              <div className="w-72 rounded-2xl border border-civic-line bg-white p-4 shadow-2xl" role="dialog" aria-label="Accessibility options">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-[#111111]">Accessibility options</p>
+                    <p className="mt-1 text-xs leading-5 text-civic-muted">Adjust display settings for this prototype.</p>
+                  </div>
+                  <button type="button" onClick={() => setAccessOpen(false)} className="focus-ring rounded-lg border border-civic-line px-2 py-1 text-xs font-extrabold text-[#111111] hover:bg-[#f3f0e7]" aria-label="Close accessibility options">
+                    Close
+                  </button>
+                </div>
+                <div className="mt-4 grid gap-2">
+                  <button type="button" onClick={() => updatePreference({ textSize: "large" })} className={`focus-ring rounded-xl border px-3 py-2 text-left text-sm font-extrabold ${preferences.textSize === "large" ? "border-[#620603] bg-[#f6e8e7] text-[#620603]" : "border-civic-line bg-white text-[#111111] hover:bg-[#f3f0e7]"}`}>
+                    Increase text size
+                  </button>
+                  <button type="button" onClick={() => updatePreference({ textSize: "small" })} className={`focus-ring rounded-xl border px-3 py-2 text-left text-sm font-extrabold ${preferences.textSize === "small" ? "border-[#620603] bg-[#f6e8e7] text-[#620603]" : "border-civic-line bg-white text-[#111111] hover:bg-[#f3f0e7]"}`}>
+                    Decrease text size
+                  </button>
+                  <button type="button" onClick={() => updatePreference({ highContrast: !preferences.highContrast })} className={`focus-ring rounded-xl border px-3 py-2 text-left text-sm font-extrabold ${preferences.highContrast ? "border-[#111111] bg-[#111111] text-white" : "border-civic-line bg-white text-[#111111] hover:bg-[#f3f0e7]"}`} aria-pressed={preferences.highContrast}>
+                    High contrast mode
+                  </button>
+                  <button type="button" onClick={() => updatePreference({ reduceMotion: !preferences.reduceMotion })} className={`focus-ring rounded-xl border px-3 py-2 text-left text-sm font-extrabold ${preferences.reduceMotion ? "border-[#111111] bg-[#111111] text-white" : "border-civic-line bg-white text-[#111111] hover:bg-[#f3f0e7]"}`} aria-pressed={preferences.reduceMotion}>
+                    Reduce motion
+                  </button>
+                  <button type="button" onClick={resetPreferences} className="focus-ring rounded-xl border border-[#620603]/25 bg-white px-3 py-2 text-left text-sm font-extrabold text-[#620603] hover:bg-[#f6e8e7]">
+                    Reset accessibility settings
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => { setAccessOpen(open => !open); setLanguageOpen(false); }}
+              className="focus-ring grid h-16 w-16 place-items-center rounded-full bg-[#1a73e8] text-white shadow-xl ring-4 ring-white/80 transition hover:bg-[#1558b0]"
+              aria-label="Open accessibility options"
+              aria-expanded={accessOpen}
+            >
+              <svg aria-hidden="true" viewBox="0 0 64 64" className="h-10 w-10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="6">
+                <circle cx="32" cy="13" r="5" fill="currentColor" stroke="none"></circle>
+                <path d="M15 25c6 3 12 4 17 4s11-1 17-4"></path>
+                <path d="M32 29v14"></path>
+                <path d="M32 43 22 56"></path>
+                <path d="M32 43 42 56"></path>
+              </svg>
+            </button>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => { setLanguageOpen(open => !open); setAccessOpen(false); }}
+                className="focus-ring flex items-center gap-3 rounded-sm border border-civic-line bg-white px-5 py-4 text-lg font-black text-[#111111] shadow-lg"
+                aria-label="Open language options"
+                aria-expanded={languageOpen}
+              >
+                <span className="grid h-6 w-8 place-items-center rounded border border-civic-line bg-[#f3f0e7] text-[0.65rem] font-black text-[#620603]" aria-hidden="true">EN</span>
+                <span>EN</span>
+                <span className={`text-civic-muted transition ${languageOpen ? "rotate-180" : ""}`} aria-hidden="true">v</span>
+              </button>
+              {languageOpen && (
+                <div className="absolute bottom-full left-0 mb-2 w-72 rounded-2xl border border-civic-line bg-white p-4 shadow-2xl" role="menu" aria-label="Language options">
+                  <p className="text-sm font-black text-[#111111]">Language</p>
+                  <p className="mt-1 text-xs leading-5 text-civic-muted">English is available now. Expanded translation support can be connected in a future version.</p>
+                  <div className="mt-3 grid gap-2">
+                    {languages.map(language => (
+                      <button key={language} type="button" className={`focus-ring flex items-center justify-between rounded-xl border px-3 py-2 text-sm font-extrabold ${language === "English" ? "border-[#620603] bg-[#f6e8e7] text-[#620603]" : "border-civic-line bg-white text-[#111111] hover:bg-[#f3f0e7]"}`} role="menuitem" onClick={() => language === "English" && setLanguageOpen(false)}>
+                        <span>{language}</span>
+                        <span className="text-xs font-bold text-civic-muted">{language === "English" ? "Current" : "Coming soon"}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
       function App() {
         const [route, setRoute] = useState(() => parseRouteLocation());
         const [globalSearch, setGlobalSearch] = useState(route.params.q || "");
         const [selectedIndicator, setSelectedIndicator] = useState(null);
+        const [accessPreferences, setAccessPreferences] = useState(() => getStoredAccessPreferences());
         useEffect(() => {
           const syncRoute = () => {
             const nextRoute = parseRouteLocation();
@@ -975,6 +1132,16 @@
           window.addEventListener("keydown", handleEscape);
           return () => window.removeEventListener("keydown", handleEscape);
         }, []);
+        useEffect(() => {
+          const root = document.documentElement;
+          root.classList.toggle("access-text-large", accessPreferences.textSize === "large");
+          root.classList.toggle("access-text-small", accessPreferences.textSize === "small");
+          root.classList.toggle("access-high-contrast", accessPreferences.highContrast);
+          root.classList.toggle("access-reduce-motion", accessPreferences.reduceMotion);
+          try {
+            window.localStorage.setItem("omahaTrackerAccessibility", JSON.stringify(accessPreferences));
+          } catch (error) {}
+        }, [accessPreferences]);
         const commitRoute = (section, params = {}) => {
           const nextSection = normalizeSection(section);
           const nextParams = cleanRouteParams(params);
@@ -1006,6 +1173,7 @@
               {sectionComponents[activeSection]}
             </main>
             <IndicatorDetailsDrawer indicator={selectedIndicator} onClose={() => setSelectedIndicator(null)} />
+            <FloatingAccessTools preferences={accessPreferences} setPreferences={setAccessPreferences} />
           </div>
         );
       }
