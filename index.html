@@ -753,21 +753,29 @@
       }
 
       function ContactUs() {
+        const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe6v7TFAhlqbyRfh14QB1o5MamjuWn63cGXsc3nqEBEMfX3tg/viewform?usp=header";
+        const embedUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe6v7TFAhlqbyRfh14QB1o5MamjuWn63cGXsc3nqEBEMfX3tg/viewform?embedded=true";
         return (
           <section id="contact" className="px-4 py-16 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-4xl">
-              <SectionHeading eyebrow="Contact Us" title="Contact us">
+              <SectionHeading eyebrow="Contact Us" title="Ask a question">
                 Have questions about the Omaha Progress Tracker or comprehensive plan implementation? Share your question with the planning team.
               </SectionHeading>
-              <div className="rounded-3xl border border-civic-line bg-white p-6 text-center shadow-civic sm:p-8">
-                <p className="mx-auto max-w-2xl text-base leading-7 text-civic-muted">
-                  Use this form to send questions about the tracker, plan implementation progress, indicators, annual updates, or related public information.
-                </p>
-                <a href="https://forms.gle/REPLACE_WITH_REAL_FORM_LINK" target="_blank" rel="noopener noreferrer" className="focus-ring nowrap-pill mt-6 justify-center rounded-full bg-[#620603] px-6 py-3 text-sm font-extrabold text-white hover:bg-[#4c0502]">
-                  Ask a question
-                </a>
-                <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-civic-muted">
-                  This form is for questions about the tracker, plan implementation and related public updates.
+              <div className="rounded-3xl border border-civic-line bg-white p-3 shadow-civic sm:p-5">
+                <iframe
+                  src={embedUrl}
+                  width="100%"
+                  height="900"
+                  frameBorder="0"
+                  marginHeight="0"
+                  marginWidth="0"
+                  title="Omaha Progress Tracker question form"
+                  className="min-h-[850px] w-full rounded-2xl"
+                >
+                  Loading...
+                </iframe>
+                <p className="mt-3 text-center text-sm leading-6 text-civic-muted">
+                  If the form does not load, <a href={formUrl} target="_blank" rel="noopener noreferrer" className="font-extrabold text-[#620603] underline decoration-[#FA4F1E]/40 underline-offset-4 hover:text-[#4c0502]">open it in a new tab</a>.
                 </p>
               </div>
             </div>
@@ -830,9 +838,6 @@
               {sectionComponents[activeSection]}
             </main>
             <IndicatorDetailsDrawer indicator={selectedIndicator} onClose={() => setSelectedIndicator(null)} />
-            <footer className="border-t border-civic-line bg-[#620603] px-6 py-4 text-center text-[0.85rem] font-semibold leading-5 text-white">
-              Omaha Progress Tracker is a sample public-facing implementation dashboard concept for tracking comprehensive plan progress.
-            </footer>
           </div>
         );
       }
